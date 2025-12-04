@@ -720,4 +720,9 @@ public class SupplierService {
     public Supplier getInfoByName(String name, String type) {
         return supplierMapperEx.getInfoByName(name, type);
     }
+
+    public int updateLogo(Long id, byte[] logo) {
+        return supplierMapper.updateLogo(id, logo);
+    }
+
 }

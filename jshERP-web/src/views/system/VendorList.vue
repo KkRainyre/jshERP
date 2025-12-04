@@ -79,6 +79,17 @@
               <a-tag v-if="enabled" color="green">启用</a-tag>
               <a-tag v-if="!enabled" color="orange">禁用</a-tag>
             </template>
+            <!-- logo -->
+
+            <template slot="logoRender" slot-scope="logo">
+              <div v-if="logo">
+                <img
+                  :src="'data:image/jpeg;base64,' + logo"
+                  style="width:40px;height:40px;object-fit:contain;border:1px solid #eee;padding:2px;border-radius:4px;"
+                />
+              </div>
+              <span v-else>-</span>
+            </template>
           </a-table>
         </div>
         <!-- table区域-end -->
@@ -154,8 +165,11 @@
           { title: '税率(%)', dataIndex: 'taxRate',width:80,align:"left"},
           { title: '排序', dataIndex: 'sort', width: 60,align:"left"},
           { title: '状态',dataIndex: 'enabled',width:60,align:"center",
-            scopedSlots: { customRender: 'customRenderFlag' }
-          }
+            scopedSlots: { customRender: 'customRenderFlag' },
+
+          },
+          { title: "Logo", dataIndex: "logo", scopedSlots: { customRender: "logoRender" } }
+
         ],
         url: {
           list: "/supplier/list",
@@ -195,7 +209,28 @@
         if(this.btnEnableList.indexOf(1)===-1) {
           this.$refs.modalForm.isReadOnly = true
         }
+      },
+      normalizeLogo(logo) {
+        if (!logo) return null;
+
+        // backend already returns a base64 string
+        if (typeof logo === "string") {
+          return logo;
+        }
+
+        // backend returns byte[]
+        if (Array.isArray(logo)) {
+          let binary = '';
+          let bytes = new Uint8Array(logo);
+          for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          return window.btoa(binary);
+        }
+
+        return null;
       }
+
     }
   }
 </script>

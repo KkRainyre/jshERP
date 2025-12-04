@@ -177,7 +177,7 @@
 </template>
 <script>
   import pick from 'lodash.pick'
-  import MemberModal from '../../system/modules/MemberModal'
+  import AgencyModal from '../../system/modules/AgencyModal.vue'
   import DepotModal from '../../system/modules/DepotModal'
   import AccountModal from '../../system/modules/AccountModal'
   import BatchSetDepot from '../dialog/BatchSetDepot'
@@ -197,7 +197,7 @@
     name: "RetailOutModal",
     mixins: [JEditableTableMixin, BillModalMixin],
     components: {
-      MemberModal,
+      MemberModal: AgencyModal,
       DepotModal,
       AccountModal,
       BatchSetDepot,

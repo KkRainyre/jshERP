@@ -57,6 +57,29 @@ export const constantRouterMap = [
       }
     ]
   },
+
+  // ---------------------------------------
+  // Agency Detail (MUST be inside TabLayout)
+  // ---------------------------------------
+  {
+    path: '/agency',
+    component: TabLayout,
+    redirect: '/agency/index',
+    children: [
+      {
+        path: 'index',
+        name: 'Agency',
+        meta: { title: 'Agency Profile' },
+        component: () => import('@views/system/AgencyList.vue')
+      },
+      {
+        path: ':id',
+        name: 'AgencyDetail',
+        meta: { title: 'Agency Detail', keepAlive: false, permissionList: [] },
+        component: () => import('@views/system/AgencyDetail.vue')
+      }
+    ]
+  },
   {
     path: '/404',
     component: () => import(/* webpackChunkName: "fail" */ '@/views/exception/404')

@@ -7,7 +7,7 @@
           size="large"
           v-decorator="['loginName',{initialValue:'', rules: validatorRules.loginName.rules}]"
           type="text"
-          placeholder="请输入用户名">
+          placeholder="Please enter the username">
           <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }"/>
         </a-input>
       </a-form-item>
@@ -18,7 +18,7 @@
           size="large"
           type="password"
           autocomplete="false"
-          placeholder="请输入密码">
+          placeholder="Please enter the password">
           <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }"/>
         </a-input-password>
       </a-form-item>
@@ -31,7 +31,7 @@
               size="large"
               type="text"
               default-value=""
-              placeholder="请输入验证码">
+              placeholder="Verifaction code">
               <a-icon slot="prefix" type="smile" :style="{ color: 'rgba(0,0,0,.25)' }"/>
             </a-input>
           </a-form-item>
@@ -43,9 +43,9 @@
       </a-row>
 
       <a-form-item>
-        <a-checkbox :checked="checked" @change="handleChange">记住密码</a-checkbox>
+        <a-checkbox :checked="checked" @change="handleChange">Remember the Password</a-checkbox>
         <router-link v-if="registerFlag==='1'" :to="{ name: 'register'}" class="forge-password" style="float: right;margin-right: 10px;" >
-          注册租户
+          Sign Up
         </router-link>
       </a-form-item>
 
@@ -57,7 +57,7 @@
           class="login-button"
           :loading="loginBtn"
           @click.stop.prevent="handleSubmit"
-          :disabled="loginBtn">登 录
+          :disabled="loginBtn">Login
         </a-button>
       </a-form-item>
 
@@ -65,7 +65,7 @@
         <a-row>
           <a-col>
             © 2015-2030 Powered By
-            <a style="color:#00458a;" :href="systemUrl" target="_blank">官方网站</a>
+            <a style="color:#00458a;" :href="systemUrl" target="_blank">Baganti Offical Website</a>
           </a-col>
         </a-row>
       </div>
@@ -230,14 +230,14 @@
         let that = this
         this.$router.push({ path: "/dashboard/analysis" })
         this.$notification.success({
-          message: '欢迎',
-          description: `${timeFix()}，欢迎回来`,
+          message: 'Welcome',
+          description: `${timeFix()}，Welcome Back`,
         })
         if(res.data.pwdSimple) {
           setTimeout(function () {
             that.$notification.warning({
-              message: '友情提醒',
-              description: '密码过于简单，请尽快修改',
+              message: 'Kindly Reminder',
+              description: 'The password is too simple, Pls modify it ASAP',
             })
           },3000)
         }
@@ -278,15 +278,15 @@
       },
       cmsFailed(err){
         this.$notification[ 'error' ]({
-          message: "登录失败",
+          message: "Login Failed",
           description:err,
           duration: 4,
         });
       },
       requestFailed (err) {
         this.$notification[ 'error' ]({
-          message: '登录失败',
-          description: ((err.response || {}).data || {}).message || err.message || err.data.message || "请求出现错误，请稍后再试",
+          message: 'Login Failed',
+          description: ((err.response || {}).data || {}).message || err.message || err.data.message || "Request has an error,pls try again later",
           duration: 4,
         });
         //验证码刷新
@@ -303,15 +303,15 @@
           if(res.data.msgTip === 'user can login'){
             this.loginSuccess(res)
           } else if(res.data.msgTip === 'user is not exist'){
-            err.message = '用户不存在';
+            err.message = 'The user isnt exits';
             this.requestFailed(err)
             this.Logout();
           } else if(res.data.msgTip === 'user password error'){
-            err.message = '用户密码不正确';
+            err.message = 'The password is incorrect';
             this.requestFailed(err)
             this.Logout();
           } else if(res.data.msgTip === 'user is black'){
-            err.message = '用户被禁用';
+            err.message = 'This user is blocked';
             this.requestFailed(err)
             this.Logout();
           } else if(res.data.msgTip === 'tenant is black'){
@@ -327,7 +327,7 @@
             this.requestFailed(err)
             this.Logout();
           } else if(res.data.msgTip === 'access service error'){
-            err.message = '查询服务异常';
+            err.message = 'System Error';
             this.requestFailed(err)
             this.Logout();
           }

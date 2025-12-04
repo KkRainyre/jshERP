@@ -536,4 +536,30 @@ public class SupplierController extends BaseController {
         }
     }
 
+
+    @PostMapping("/uploadLogo")
+    @ApiOperation(value = "上传供应商Logo")
+    public String uploadLogo(@RequestParam("id") Long supplierId,
+                             @RequestParam("file") MultipartFile file,
+                             HttpServletRequest request) throws Exception {
+
+        Map<String, Object> objectMap = new HashMap<>();
+
+        if (file.isEmpty()) {
+            objectMap.put("message", "文件为空");
+            return returnJson(objectMap, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
+        }
+
+        byte[] bytes = file.getBytes();
+        int res = supplierService.updateLogo(supplierId, bytes);
+
+        if (res > 0) {
+            objectMap.put("message", "上传成功");
+            return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+        } else {
+            objectMap.put("message", "上传失败");
+            return returnJson(objectMap, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
+        }
+    }
+
 }

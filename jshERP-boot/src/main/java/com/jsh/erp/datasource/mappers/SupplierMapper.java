@@ -27,4 +27,7 @@ public interface SupplierMapper {
     int updateByPrimaryKeySelective(Supplier record);
 
     int updateByPrimaryKey(Supplier record);
+
+    int updateLogo(@Param("id") Long id, @Param("logo") byte[] logo);
+
 }

@@ -53,6 +53,9 @@ public class Supplier {
 
     private String deleteFlag;
 
+    private byte[] logo;
+
+
     public Long getId() {
         return id;
     }
@@ -252,4 +255,13 @@ public class Supplier {
     public void setDeleteFlag(String deleteFlag) {
         this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
     }
+
+    public byte[] getLogo() {
+        return logo;
+    }
+
+    public void setLogo(byte[] logo) {
+        this.logo = logo;
+    }
+
 }
