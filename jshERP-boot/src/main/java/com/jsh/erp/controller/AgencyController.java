@@ -47,21 +47,22 @@ public class AgencyController extends BaseController {
     // LIST AGENCIES (with search filters)
     // ---------------------------------------------
     @GetMapping("/list")
-    public TableDataInfo list(@RequestParam(value = Constants.SEARCH, required = false) String search)
-            throws Exception {
+    public TableDataInfo list(
+            @RequestParam(value = Constants.SEARCH, required = false) String search) throws Exception {
 
-        String name = StringUtil.getInfo(search, "name");
-        String tier = StringUtil.getInfo(search, "tier");
+        String name  = StringUtil.getInfo(search, "name");
+        String tier  = StringUtil.getInfo(search, "tier");
         String phone = StringUtil.getInfo(search, "phone");
-
-        String city = StringUtil.getInfo(search, "city");
+        String city  = StringUtil.getInfo(search, "city");
         String state = StringUtil.getInfo(search, "state");
         String postal = StringUtil.getInfo(search, "postal");
 
+        startPage(); // REQUIRED for pagination
 
-        List<LcAgency> list = lcAgencyService.select(name,tier,phone,city,state,postal);
+        List<LcAgency> list = lcAgencyService.select(name, tier, phone, city, state, postal);
         return getDataTable(list);
     }
+
 
     // ---------------------------------------------
     // ADD AGENCY
@@ -118,4 +119,21 @@ public class AgencyController extends BaseController {
             return returnJson(map, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
         }
     }
+
+//    // ---------------------------------------------
+//    // GET AGENCY BY ID
+//    // ---------------------------------------------
+//    @GetMapping("/detailinfo")
+//    public String getDetailInfo(@RequestParam("id") Long id) throws Exception {
+//        Map<String, Object> map = new HashMap<>();
+//        LcAgency agency = lcAgencyService.getAgency(id);
+//
+//        if (agency != null) {
+//            map.put("info", agency);
+//            return returnJson(map, ErpInfo.OK.name, ErpInfo.OK.code);
+//        } else {
+//            return returnJson(map, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
+//        }
+//    }
+
 }

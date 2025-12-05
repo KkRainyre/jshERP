@@ -5,7 +5,7 @@
       <div class="header-left">
         <a-button type="link" icon="left" class="back-btn">Contacts</a-button>
         <span class="separator">|</span>
-        <span class="contact-name">Brian Halligan</span>
+        <span class="contact-name">{{ agency.name }}</span>
       </div>
       <div class="header-right">
         <a-button class="action-btn">Actions <a-icon type="down" /></a-button>
@@ -24,7 +24,7 @@
             <div class="profile-info">
               <h3 class="name">Brian Halligan <br/>(Sample Contact)</h3>
               <p class="title">Executive Chairperson at HubSpot</p>
-              <p class="email">bh@hubspot.com <a-icon type="copy" class="copy-icon" /></p>
+              <p class="email">{{ agency.email }} <a-icon type="copy" class="copy-icon" /></p>
             </div>
           </div>
 
@@ -114,7 +114,7 @@
                       </div>
                       <div class="field-group">
                         <label>State/Region</label>
-                        <div class="field-value">--</div>
+                        <div class="field-value">{{ agency.state }}</div>
                       </div>
                     </a-col>
                     <a-col :span="12">
@@ -124,19 +124,19 @@
                       </div>
                       <div class="field-group">
                         <label>Email</label>
-                        <div class="field-value">bh@hubspot.com</div>
+                        <div class="field-value">{{ agency.email }}</div>
                       </div>
                     </a-col>
                     <a-col :span="12">
                       <div class="field-group">
                         <label>City</label>
-                        <div class="field-value">Cambridge</div>
+                        <div class="field-value">{{ agency.city }}</div>
                       </div>
                     </a-col>
                     <a-col :span="12">
                       <div class="field-group">
                         <label>Postal code</label>
-                        <div class="field-value">--</div>
+                        <div class="field-value">{{ agency.postal }}</div>
                       </div>
                     </a-col>
                   </a-row>
@@ -186,7 +186,7 @@
                 <span class="panel-title">Companies (1)</span>
               </template>
               <a-icon slot="extra" type="plus" class="add-icon" />
-              
+
               <div class="company-item">
                 <a-avatar shape="square" size="small" style="background-color: #ff7a59">H</a-avatar>
                 <div class="company-details">
@@ -240,11 +240,22 @@ export default {
   name: 'Agency',
   data() {
     return {
+      agencyId: null,
+      agency: {}   // will hold the data from backend
     }
   },
+  created() {
+    this.agencyId = this.$route.params.id;
+    this.loadAgency();
+  },
   methods: {
+    async loadAgency() {
+      const res = await getAction(`/agency/info?id=${this.agencyId}`);
+      this.agency = res.data;
+    }
   }
 }
+
 </script>
 
 <style scoped lang="less">
@@ -268,7 +279,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  
+
   .header-left {
     display: flex;
     align-items: center;
@@ -290,7 +301,7 @@ export default {
       color: #33475b;
     }
   }
-  
+
   .action-btn {
     border-color: #ff7a59;
     color: #ff7a59;
@@ -304,17 +315,17 @@ export default {
 .left-card {
   border-radius: 8px;
   margin-bottom: 16px;
-  
+
   .profile-header {
     text-align: center;
     margin-bottom: 24px;
-    
+
     .avatar-wrapper {
       position: relative;
       display: inline-block;
       margin-bottom: 12px;
     }
-    
+
     .name {
       font-size: 20px;
       font-weight: 700;
@@ -335,18 +346,18 @@ export default {
       }
     }
   }
-  
+
   .quick-actions {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     margin-bottom: 16px;
-    
+
     .action-item {
       text-align: center;
       width: 33%;
       margin-bottom: 12px;
-      
+
       .ant-btn {
         border-color: #cbd6e2;
         color: #516f90;
@@ -370,7 +381,7 @@ export default {
   border-radius: 8px;
   margin-bottom: 16px;
   min-height: 600px;
-  
+
   .custom-tabs {
     /deep/ .ant-tabs-nav .ant-tabs-tab {
       margin: 0 16px 0 0;
@@ -389,18 +400,18 @@ export default {
       display: none; /* Hide default ink bar to use border-bottom instead for custom look */
     }
   }
-  
+
   .tab-content {
     padding: 20px;
   }
-  
+
   .breeze-summary {
     background: #fff5f5;
     border: 1px solid #ffdfdf;
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 24px;
-    
+
     .summary-header {
       display: flex;
       justify-content: space-between;
@@ -416,7 +427,7 @@ export default {
       color: #33475b;
       font-size: 14px;
       line-height: 1.6;
-      
+
       .ask-btn {
         margin-top: 12px;
         border-radius: 12px;
@@ -429,13 +440,13 @@ export default {
       }
     }
   }
-  
+
   .section-block {
     border: 1px solid #eaf0f6;
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 24px;
-    
+
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -447,7 +458,7 @@ export default {
         color: #33475b;
       }
     }
-    
+
     .field-group {
       margin-bottom: 16px;
       label {
@@ -461,7 +472,7 @@ export default {
         font-size: 14px;
       }
     }
-    
+
     .sub-text {
       color: #516f90;
       font-size: 13px;
@@ -474,30 +485,30 @@ export default {
 .right-card {
   border-radius: 8px;
   margin-bottom: 16px;
-  
+
   .right-panel {
     border-bottom: 1px solid #eaf0f6;
-    
+
     .panel-title {
       font-weight: 600;
       color: #33475b;
     }
-    
+
     .add-icon {
       color: #ff7a59;
       cursor: pointer;
     }
-    
+
     .company-item {
       display: flex;
       align-items: flex-start;
       margin-bottom: 12px;
       margin-top: 8px;
-      
+
       .company-details {
         margin-left: 10px;
         flex: 1;
-        
+
         .company-name {
           font-weight: 600;
           color: #33475b;
@@ -517,7 +528,7 @@ export default {
         }
       }
     }
-    
+
     .empty-state {
       text-align: center;
       padding: 16px 0;

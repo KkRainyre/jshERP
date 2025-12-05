@@ -247,12 +247,12 @@ export const JeecgListMixin = {
     },
     handleEdit: function (record) {
       this.$refs.modalForm.edit(record);
-      this.$refs.modalForm.title = "编辑";
+      this.$refs.modalForm.title = "Edit";
       this.$refs.modalForm.disableSubmit = false;
     },
     handleAdd: function () {
       this.$refs.modalForm.add();
-      this.$refs.modalForm.title = "新增";
+      this.$refs.modalForm.title = "Add";
       this.$refs.modalForm.disableSubmit = false;
     },
     handleTableChange(pagination, filters, sorter) {

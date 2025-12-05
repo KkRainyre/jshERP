@@ -14,12 +14,9 @@ public interface LcAgencyMapperEx {
             @Param("name") String name,
             @Param("tier") String tier,
             @Param("phone") String phone,
-
             @Param("city") String city,
             @Param("state") String state,
             @Param("postal") String postal
-
-
     );
 
     /**

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsh.erp.datasource.mappers.LcAgencyMapperEx">
+
+    <sql id="Base_Column_List">
+        id,
+        name, email, phone,
+        remarks,
+        address, bill_address, city, state, postal,
+        enrollment, website,
+        logo,
+        tier, shipping_acc, ein,
+        ext1, ext2, ext3, ext4, ext5,
+        make_time, modify_time
+    </sql>
+
+    <!-- ========================= -->
+    <!--   PAGED QUERY            -->
+    <!-- ========================= -->
+    <select id="selectByCondition" resultType="com.jsh.erp.datasource.entities.LcAgency">
+        SELECT
+        id, name, email, phone,
+        remarks, address, bill_address, city, state, postal,
+        enrollment, website, logo,
+        tier, shipping_acc, ein,
+        ext1, ext2, ext3, ext4, ext5,
+        make_time, modify_time
+        FROM lc_agency
+        WHERE 1 = 1
+
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+
+        <if test="tier != null and tier != ''">
+            AND tier = #{tier}
+        </if>
+
+        <if test="phone != null and phone != ''">
+            AND phone LIKE CONCAT('%', #{phone}, '%')
+        </if>
+
+        <if test="city != null and city != ''">
+            AND city LIKE CONCAT('%', #{city}, '%')
+        </if>
+
+        <if test="state != null and state != ''">
+            AND state LIKE CONCAT('%', #{state}, '%')
+        </if>
+
+        <if test="postal != null and postal != ''">
+            AND postal LIKE CONCAT('%', #{postal}, '%')
+        </if>
+
+        ORDER BY id DESC
+    </select>
+
+
+    <!-- ========================= -->
+    <!-- COUNT FOR PAGINATION     -->
+    <!-- ========================= -->
+    <select id="countByCondition" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM lc_agency
+        WHERE 1 = 1
+
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+
+        <if test="tier != null and tier != ''">
+            AND tier = #{tier}
+        </if>
+
+        <if test="phone != null and phone != ''">
+            AND phone LIKE CONCAT('%', #{phone}, '%')
+        </if>
+
+        <if test="city != null and city != ''">
+            AND city LIKE CONCAT('%', #{city}, '%')
+        </if>
+
+        <if test="state != null and state != ''">
+            AND state LIKE CONCAT('%', #{state}, '%')
+        </if>
+
+        <if test="postal != null and postal != ''">
+            AND postal LIKE CONCAT('%', #{postal}, '%')
+        </if>
+    </select>
+
+</mapper>

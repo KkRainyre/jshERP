@@ -27,7 +27,7 @@
                   <a-button type="primary" @click="searchQuery">Search</a-button>
                   <a-button style="margin-left: 8px" @click="searchReset">Reset</a-button>
                   <a @click="handleToggleSearch" style="margin-left: 8px">
-                    {{ toggleSearchStatus ? '收起' : '展开' }}
+                    {{ toggleSearchStatus ? 'Close' : 'Expand' }}
                     <a-icon :type="toggleSearchStatus ? 'up' : 'down'"/>
                   </a>
                 </span>
@@ -60,7 +60,7 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchDel" icon="delete">Delete</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(true)" icon="check-square">Enable</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(false)" icon="close-square">Ban</a-button>
-          <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleImportXls()" icon="import">Impotr</a-button>
+          <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleImportXls()" icon="import">Import</a-button>
           <a-button v-if="btnEnableList.indexOf(3)>-1" @click="handleExportXls('会员信息')" icon="download">Export</a-button>
 <!--          <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetAdvanceIn()" icon="stock">修正预付款</a-button>-->
         </div>
@@ -83,7 +83,7 @@
             <span slot="action" slot-scope="text, record">
               <a @click="handleEdit(record)">edit</a>
               <a-divider type="vertical" />
-              <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record.id)">
+              <a-popconfirm title="Are you sure to delete?" @confirm="() => handleDelete(record.id)">
                 <a>delete</a>
               </a-popconfirm>
             </span>
@@ -95,7 +95,14 @@
               <a-tag v-if="enabled" color="green">启用</a-tag>
               <a-tag v-if="!enabled" color="orange">禁用</a-tag>
             </template>
-
+            <template slot="websiteRender" slot-scope="text">
+              <div v-if="text">
+                <a :href="formatUrl(text)" target="_blank" class="website-link">
+                  {{ text }}
+                </a>
+              </div>
+              <span v-else>-</span>
+            </template>
             <template slot="logoRender" slot-scope="logo">
               <div
                 v-if="logo"
@@ -202,7 +209,7 @@
           { title: 'Tier', dataIndex: 'tier', width: 80, align: "center" },
           { title: 'Phone', dataIndex: 'phone', width: 100, align: "center" },
           { title: 'Email', dataIndex: 'email', width: 140, align: "center" },
-          { title: 'Website', dataIndex: 'website', width: 140, align: "center" },
+          {title: 'Website', dataIndex: 'website', width: 140, align: "center", scopedSlots: { customRender: 'websiteRender' }},
           { title: 'City', dataIndex: 'city', width: 100, align: "center" },
           { title: 'State', dataIndex: 'state', width: 80, align: "center" },
           { title: 'Postal', dataIndex: 'postal', width: 80, align: "center" },
@@ -304,6 +311,10 @@
       },
       goToAgency(id) {
         this.$router.push(`/agency/${id}`);
+      },
+      formatUrl(url) {
+        if (!url) return '';
+        return url.startsWith('http') ? url : `https://${url}`;
       }
 
     }

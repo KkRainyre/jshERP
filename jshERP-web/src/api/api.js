@@ -105,6 +105,14 @@ const findBySelectSup = (params)=>postAction("/supplier/findBySelect_sup",params
 const findBySelectCus = (params)=>postAction("/supplier/findBySelect_cus",params);
 const findBySelectRetail = (params)=>postAction("/supplier/findBySelect_retail",params);
 const findBySelectOrgan = (params)=>postAction("/supplier/findBySelect_organ",params);
+//供应商
+const addAgency = (params)=>postAction("/agency/add",params);
+const editAgency = (params)=>putAction("/agency/update",params);
+const checkAgency = (params)=>getAction("/agency/checkIsNameAndTypeExist",params);
+// const findBySelectSup = (params)=>postAction("/supplier/findBySelect_sup",params);
+// const findBySelectCus = (params)=>postAction("/supplier/findBySelect_cus",params);
+// const findBySelectRetail = (params)=>postAction("/supplier/findBySelect_retail",params);
+// const findBySelectOrgan = (params)=>postAction("/supplier/findBySelect_organ",params);
 //单据相关
 const findBillDetailByNumber = (params)=>getAction("/depotHead/getDetailByNumber",params);
 const waitBillCount = (params)=>getAction("/depotHead/waitBillCount",params);
@@ -193,6 +201,11 @@ export {
   addUnit,
   editUnit,
   checkUnit,
+
+  addAgency,
+  editAgency,
+  checkAgency,
+
   addSupplier,
   editSupplier,
   checkSupplier,

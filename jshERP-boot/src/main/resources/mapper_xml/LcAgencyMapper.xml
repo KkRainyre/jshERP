@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsh.erp.datasource.mappers.LcAgencyMapper">
+
+    <!-- ========= RESULT MAPPING ========= -->
+    <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.LcAgency">
+        <id column="id" property="id"/>
+
+        <result column="name" property="name"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+
+        <result column="remarks" property="remarks"/>
+
+        <result column="address" property="address"/>
+        <result column="bill_address" property="billAddress"/>
+        <result column="city" property="city"/>
+        <result column="state" property="state"/>
+        <result column="postal" property="postal"/>
+
+        <result column="enrollment" property="enrollment"/>
+        <result column="website" property="website"/>
+
+        <result column="logo" property="logo"/>
+
+        <result column="tier" property="tier"/>
+        <result column="shipping_acc" property="shippingAcc"/>
+        <result column="ein" property="EIN"/>
+
+        <result column="ext1" property="EXT1"/>
+        <result column="ext2" property="EXT2"/>
+        <result column="ext3" property="EXT3"/>
+        <result column="ext4" property="EXT4"/>
+        <result column="ext5" property="EXT5"/>
+
+        <result column="make_time" property="makeTime"/>
+        <result column="modify_time" property="modifyTime"/>
+    </resultMap>
+
+    <!-- ========= BASE COLUMNS ========= -->
+    <sql id="Base_Column_List">
+        id,
+        name, email, phone,
+        remarks,
+        address, bill_address, city, state, postal,
+        enrollment, website,
+        logo,
+        tier, shipping_acc, ein,
+        ext1, ext2, ext3, ext4, ext5,
+        make_time, modify_time
+    </sql>
+
+    <!-- ========= SELECT ========= -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM lc_agency
+        WHERE id = #{id}
+    </select>
+
+    <!-- ========= DELETE ========= -->
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM lc_agency WHERE id = #{id}
+    </delete>
+
+    <!-- ========= INSERT ========= -->
+    <insert id="insert">
+        INSERT INTO lc_agency (
+        <include refid="Base_Column_List"/>
+        ) VALUES (
+        #{id},
+        #{name}, #{email}, #{phone},
+        #{remarks},
+        #{address}, #{billAddress}, #{city}, #{state}, #{postal},
+        #{enrollment}, #{website},
+        #{logo},
+        #{tier}, #{shippingAcc}, #{EIN},
+        #{EXT1}, #{EXT2}, #{EXT3}, #{EXT4}, #{EXT5},
+        #{makeTime}, #{modifyTime}
+        )
+    </insert>
+
+    <!-- ========= INSERT SELECTIVE ========= -->
+    <insert id="insertSelective" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO lc_agency
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="email != null">email,</if>
+            <if test="phone != null">phone,</if>
+
+            <if test="remarks != null">remarks,</if>
+
+            <if test="address != null">address,</if>
+            <if test="billAddress != null">bill_address,</if>
+            <if test="city != null">city,</if>
+            <if test="state != null">state,</if>
+            <if test="postal != null">postal,</if>
+
+            <if test="enrollment != null">enrollment,</if>
+            <if test="website != null">website,</if>
+
+            <if test="logo != null">logo,</if>
+
+            <if test="tier != null">tier,</if>
+            <if test="shippingAcc != null">shipping_acc,</if>
+            <if test="EIN != null">ein,</if>
+
+            <if test="EXT1 != null">ext1,</if>
+            <if test="EXT2 != null">ext2,</if>
+            <if test="EXT3 != null">ext3,</if>
+            <if test="EXT4 != null">ext4,</if>
+            <if test="EXT5 != null">ext5,</if>
+
+            <if test="makeTime != null">make_time,</if>
+            <if test="modifyTime != null">modify_time,</if>
+        </trim>
+
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="email != null">#{email},</if>
+            <if test="phone != null">#{phone},</if>
+
+            <if test="remarks != null">#{remarks},</if>
+
+            <if test="address != null">#{address},</if>
+            <if test="billAddress != null">#{billAddress},</if>
+            <if test="city != null">#{city},</if>
+            <if test="state != null">#{state},</if>
+            <if test="postal != null">#{postal},</if>
+
+            <if test="enrollment != null">#{enrollment},</if>
+            <if test="website != null">#{website},</if>
+
+            <if test="logo != null">#{logo},</if>
+
+            <if test="tier != null">#{tier},</if>
+            <if test="shippingAcc != null">#{shippingAcc},</if>
+            <if test="EIN != null">#{EIN},</if>
+
+            <if test="EXT1 != null">#{EXT1},</if>
+            <if test="EXT2 != null">#{EXT2},</if>
+            <if test="EXT3 != null">#{EXT3},</if>
+            <if test="EXT4 != null">#{EXT4},</if>
+            <if test="EXT5 != null">#{EXT5},</if>
+
+            <if test="makeTime != null">#{makeTime},</if>
+            <if test="modifyTime != null">#{modifyTime},</if>
+        </trim>
+    </insert>
+
+    <!-- ========= UPDATE SELECTIVE ========= -->
+    <update id="updateByPrimaryKeySelective">
+        UPDATE lc_agency
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+
+            <if test="remarks != null">remarks = #{remarks},</if>
+
+            <if test="address != null">address = #{address},</if>
+            <if test="billAddress != null">bill_address = #{billAddress},</if>
+            <if test="city != null">city = #{city},</if>
+            <if test="state != null">state = #{state},</if>
+            <if test="postal != null">postal = #{postal},</if>
+
+            <if test="enrollment != null">enrollment = #{enrollment},</if>
+            <if test="website != null">website = #{website},</if>
+
+            <if test="logo != null">logo = #{logo},</if>
+
+            <if test="tier != null">tier = #{tier},</if>
+            <if test="shippingAcc != null">shipping_acc = #{shippingAcc},</if>
+            <if test="EIN != null">ein = #{EIN},</if>
+
+            <if test="EXT1 != null">ext1 = #{EXT1},</if>
+            <if test="EXT2 != null">ext2 = #{EXT2},</if>
+            <if test="EXT3 != null">ext3 = #{EXT3},</if>
+            <if test="EXT4 != null">ext4 = #{EXT4},</if>
+            <if test="EXT5 != null">ext5 = #{EXT5},</if>
+
+            <if test="makeTime != null">make_time = #{makeTime},</if>
+            <if test="modifyTime != null">modify_time = #{modifyTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ========= UPDATE FULL ========= -->
+    <update id="updateByPrimaryKey">
+        UPDATE lc_agency SET
+                             name = #{name},
+                             email = #{email},
+                             phone = #{phone},
+                             remarks = #{remarks},
+                             address = #{address},
+                             bill_address = #{billAddress},
+                             city = #{city},
+                             state = #{state},
+                             postal = #{postal},
+                             enrollment = #{enrollment},
+                             website = #{website},
+                             logo = #{logo},
+                             tier = #{tier},
+                             shipping_acc = #{shippingAcc},
+                             ein = #{EIN},
+                             ext1 = #{EXT1},
+                             ext2 = #{EXT2},
+                             ext3 = #{EXT3},
+                             ext4 = #{EXT4},
+                             ext5 = #{EXT5},
+                             make_time = #{makeTime},
+                             modify_time = #{modifyTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ========= UPDATE LOGO ONLY ========= -->
+    <update id="updateLogo">
+        UPDATE lc_agency
+        SET logo = #{logo}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
