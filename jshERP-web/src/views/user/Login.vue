@@ -435,12 +435,22 @@
 
 <style lang="less" scoped>
   .user-layout-login {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+
     label {
       font-size: 14px;
     }
 
     .ant-form-item {
-      margin-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .ant-input-lg {
+      padding: 6px 11px;
+      height: 48px;
+      font-size: 16px;
     }
 
     .getCaptcha {
@@ -451,14 +461,31 @@
 
     .forge-password {
       font-size: 14px;
-      font-weight: bolder;
+      color: #1890ff;
+      transition: color 0.3s;
+      
+      &:hover {
+        color: #40a9ff;
+      }
     }
 
     button.login-button {
       padding: 0 15px;
       font-size: 16px;
-      height: 40px;
+      height: 48px;
       width: 100%;
+      border-radius: 4px;
+      background: #1890ff;
+      border-color: #1890ff;
+      box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+      transition: all 0.3s;
+
+      &:hover {
+        background: #40a9ff;
+        border-color: #40a9ff;
+        box-shadow: 0 6px 16px rgba(24, 144, 255, 0.6);
+        transform: translateY(-1px);
+      }
     }
 
     .user-login-other {
@@ -490,9 +517,17 @@
       cursor:pointer
     }
   }
-
 </style>
 <style>
+  /* Global overrides for this page */
+  .user-layout-login .ant-input-affix-wrapper .ant-input:not(:first-child) {
+    padding-left: 35px !important;
+  }
+  .user-layout-login .ant-input-prefix {
+    color: rgba(0,0,0,0.45);
+    font-size: 16px;
+  }
+  
   .valid-error .ant-select-selection__placeholder{
     color: #f5222d;
   }

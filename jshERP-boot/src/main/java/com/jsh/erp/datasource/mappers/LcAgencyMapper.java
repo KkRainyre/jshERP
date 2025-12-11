@@ -16,7 +16,13 @@ public interface LcAgencyMapper {
                                  @Param("example") LcAgencyExample example);
     int updateByExample(@Param("record") LcAgency record, @Param("example") LcAgencyExample example);
     int updateByPrimaryKeySelective(LcAgency record); int updateByPrimaryKey(LcAgency record);
-    /** Update logo blob only */ int updateLogo(@Param("id") Long id, @Param("logo") byte[] logo);
+    /** Update logo blob only *//** Update full logo and thumbnail */
+    int updateLogo(
+            @Param("id") Long id,
+            @Param("logo") byte[] logo,
+            @Param("logoThumb") byte[] logoThumb
+    );
 
 
- }
+
+}

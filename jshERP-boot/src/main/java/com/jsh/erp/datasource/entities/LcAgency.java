@@ -22,6 +22,7 @@ public class LcAgency {
     private String website;
 
     private byte[] logo;   // LONGBLOB
+    private byte[] logoThumb;   // LONGBLOB
 
     private String tier;
     private String shippingAcc;
@@ -36,7 +37,26 @@ public class LcAgency {
     private Date makeTime;
     private Date modifyTime;
 
-    // -------------------------------------------------
+    private long tenantId;
+    private String country;
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+
+    public long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(long tenantId) {
+        this.tenantId = tenantId;
+    }
+// -------------------------------------------------
     // Getter / Setter Methods
     // -------------------------------------------------
 
@@ -92,6 +112,9 @@ public class LcAgency {
 
     public void setLogo(byte[] logo) { this.logo = logo; }
 
+    public byte[] getLogoThumb() {return logoThumb;}
+
+    public void setLogoThumb(byte[] logoThumb) {this.logoThumb = logoThumb;}
     public String getTier() { return tier; }
 
     public void setTier(String tier) { this.tier = tier == null ? null : tier.trim(); }
@@ -131,4 +154,6 @@ public class LcAgency {
     public Date getModifyTime() { return modifyTime; }
 
     public void setModifyTime(Date modifyTime) { this.modifyTime = modifyTime; }
+
+
 }

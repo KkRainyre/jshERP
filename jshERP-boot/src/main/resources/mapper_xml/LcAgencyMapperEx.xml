@@ -11,7 +11,7 @@
         address, bill_address, city, state, postal,
         enrollment, website,
         logo,
-        tier, shipping_acc, ein,
+        tier, shipping_acc, EIN,
         ext1, ext2, ext3, ext4, ext5,
         make_time, modify_time
     </sql>
@@ -24,7 +24,7 @@
         id, name, email, phone,
         remarks, address, bill_address, city, state, postal,
         enrollment, website, logo,
-        tier, shipping_acc, ein,
+        tier, shipping_acc, EIN, country,
         ext1, ext2, ext3, ext4, ext5,
         make_time, modify_time
         FROM lc_agency

@@ -44,10 +44,10 @@
             <a-col :span="5">
               <a-form-item label="Tier" :labelCol="{span:8}" :wrapperCol="{span:16}">
                 <a-select placeholder="Select Tier" v-decorator="['tier', validatorRules.tier]" allowClear>
-                  <a-select-option value="pro_line">Pro Line</a-select-option>
-                  <a-select-option value="spec_line">SPEC Line</a-select-option>
-                  <a-select-option value="value_line">Value Line</a-select-option>
-                  <a-select-option value="none">None</a-select-option>
+                  <a-select-option value="A">A</a-select-option>
+                  <a-select-option value="B">B</a-select-option>
+                  <a-select-option value="C">C</a-select-option>
+                  <a-select-option value="D">D</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
@@ -129,7 +129,7 @@
             <a-col :span="12">
 
               <a-form-item label="EIN / TAX Number" :labelCol="{span:8}" :wrapperCol="{span:16}">
-                <a-input placeholder="Tax EIN" v-decorator.trim="['EIN']" />
+                <a-input placeholder="Tax / EIN" v-decorator.trim="['EIN']" />
               </a-form-item>
             </a-col>
 
@@ -297,11 +297,21 @@
   edit(record) {
   this.form.resetFields();
   this.model = Object.assign({}, record);
+  
   this.visible = true;
+
+  // Fallback: If country column is empty, try to read from EXT1 (legacy support)
+  if (!this.model.country) {
+      if (this.model.EXT1) this.model.country = this.model.EXT1;
+      else if (this.model.ext1) this.model.country = this.model.ext1;
+  }
+
+  // Check if billing address is empty and checking the box if so
+  this.sameAddress = !this.model.billAddress;
 
   this.$nextTick(() => {
   this.form.setFieldsValue(
-  pick(this.model, 'name', 'email', 'phone', 'address', 'billAddress', 'country', 'remarks','postal','city','state','shippingAcc','website','EIN')
+  pick(this.model, 'name', 'email', 'phone', 'address', 'billAddress', 'country', 'remarks','postal','city','state','shippingAcc','website','EIN', 'tier')
   );
   // autoJumpNextInput('AgencyModal');
 });
@@ -332,6 +342,13 @@
   this.form.validateFields((err, values) => {
   if (!err) {
   that.confirmLoading = true;
+
+  // Map country to EXT1 for storage, if country is present
+  if (values.country) {
+      values.country = values.country;
+  }
+
+  
 
   const formData = Object.assign({}, this.model, values, {
   logo: this.model.logo || null

@@ -4,12 +4,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.LcAgency;
+import com.jsh.erp.datasource.entities.Lcagent;
 import com.jsh.erp.service.AgencyService;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.StringUtil;
 import com.jsh.erp.utils.ErpInfo;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.jsh.erp.utils.ImageUtil;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -94,9 +97,6 @@ public class AgencyController extends BaseController {
         return returnStr(map, result);
     }
 
-    // ---------------------------------------------
-    // UPLOAD LOGO (binary BLOB)
-    // ---------------------------------------------
     @PostMapping("/uploadLogo")
     public String uploadLogo(@RequestParam("id") Long id,
                              @RequestParam("file") MultipartFile file) throws Exception {
@@ -108,8 +108,12 @@ public class AgencyController extends BaseController {
             return returnJson(map, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
         }
 
-        byte[] bytes = file.getBytes();
-        int res = lcAgencyService.updateLogo(id, bytes);
+        byte[] fullImage = file.getBytes();
+
+        // Generate thumbnail 150px wide
+        byte[] thumb = ImageUtil.generateThumbnail(fullImage, 150);
+
+        int res = lcAgencyService.updateLogo(id, fullImage, thumb);
 
         if (res > 0) {
             map.put("message", "Upload success");
@@ -120,20 +124,25 @@ public class AgencyController extends BaseController {
         }
     }
 
-//    // ---------------------------------------------
-//    // GET AGENCY BY ID
-//    // ---------------------------------------------
-//    @GetMapping("/detailinfo")
-//    public String getDetailInfo(@RequestParam("id") Long id) throws Exception {
-//        Map<String, Object> map = new HashMap<>();
-//        LcAgency agency = lcAgencyService.getAgency(id);
-//
-//        if (agency != null) {
-//            map.put("info", agency);
-//            return returnJson(map, ErpInfo.OK.name, ErpInfo.OK.code);
-//        } else {
-//            return returnJson(map, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
-//        }
-//    }
+
+    @GetMapping("/agent")
+    public String getAgentsByCompany(@RequestParam("id") Long companyId,
+                                     @RequestParam(value = "pageNo", required = false, defaultValue = "1") Integer pageNo,
+                                     @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
+
+        Map<String, Object> map = new HashMap<>();
+
+        // get list
+        List<Lcagent> list = lcAgencyService.getAgentsByCompany(companyId, pageNo, pageSize);
+
+        // total count for pagination
+        int total = lcAgencyService.countAgentsByCompany(companyId);
+
+        map.put("records", list);
+        map.put("total", total);
+
+        return returnJson(map, ErpInfo.OK.name, ErpInfo.OK.code);
+    }
+
 
 }

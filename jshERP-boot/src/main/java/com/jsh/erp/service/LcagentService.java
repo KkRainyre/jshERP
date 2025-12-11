@@ -1,50 +1,42 @@
 package com.jsh.erp.service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.jsh.erp.datasource.entities.LcAgency;
-import com.jsh.erp.datasource.entities.LcAgencyExample;
-//import com.jsh.erp.datasource.mappers.Lc;
 import com.jsh.erp.datasource.entities.Lcagent;
-import com.jsh.erp.datasource.mappers.LcAgencyMapper;
-import com.jsh.erp.datasource.mappers.LcAgencyMapperEx;
 import com.jsh.erp.datasource.mappers.LcagentMapper;
 import com.jsh.erp.datasource.mappers.LcagentMapperEx;
 import com.jsh.erp.exception.JshException;
 import com.jsh.erp.utils.PageUtils;
-import com.jsh.erp.utils.StringUtil;
 
+import jxl.write.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
-public class AgencyService {
+public class LcagentService {
 
-    private Logger logger = LoggerFactory.getLogger(AgencyService.class);
-
-    @Resource
-    private LcAgencyMapper lcAgencyMapper;
+    private Logger logger = LoggerFactory.getLogger(LcagentService.class);
 
     @Resource
-    private LcAgencyMapperEx lcAgencyMapperEx;
-
-    @Resource
-    private LcagentMapper lcagencyMapper;
+    private LcagentMapper lcagentMapper;
 
     @Resource
     private LcagentMapperEx lcagentMapperEx;
 
     // ---------------------------------------------------------------------
-    // GET AGENCY
+    // GET BY ID
     // ---------------------------------------------------------------------
-    public LcAgency getAgency(Long id) throws Exception {
+    public Lcagent getAgent(Long id) throws Exception {
         try {
-            return lcAgencyMapper.selectByPrimaryKey(id);
+            return lcagentMapper.selectByPrimaryKey(id);
         } catch (Exception e) {
             JshException.readFail(logger, e);
             return null;
@@ -52,29 +44,31 @@ public class AgencyService {
     }
 
     // ---------------------------------------------------------------------
-    // LIST AGENCIES with filters
+    // LIST WITH FILTERS
     // ---------------------------------------------------------------------
-    public List<LcAgency> select(String name, String tier, String phone, String city,String state, String postal) throws Exception {
+    public List<Lcagent> select(String name, String category,
+                                String phone, String address, String companyId) throws Exception {
         try {
             PageUtils.startPage();
-            return lcAgencyMapperEx.selectByCondition(name,tier,phone,city, state,postal);
+            List<Lcagent> result = lcagentMapperEx.selectByCondition(name, category, phone, address, companyId);
+            return result != null ? result : new java.util.ArrayList<>();
         } catch (Exception e) {
             JshException.readFail(logger, e);
-            return null;
+            return new java.util.ArrayList<>();
         }
     }
 
     // ---------------------------------------------------------------------
-    // INSERT AGENCY
+    // INSERT ENTITY
     // ---------------------------------------------------------------------
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int insertAgency(JSONObject obj) throws Exception {
-        LcAgency agency = JSONObject.parseObject(obj.toJSONString(), LcAgency.class);
+    public int insertAgent(Lcagent agent) throws Exception {
         int result = 0;
         try {
-            agency.setMakeTime(new Date());
-            agency.setModifyTime(new Date());
-            result = lcAgencyMapper.insertSelective(agency);
+            agent.setEmployId(UUID.randomUUID().toString());
+            agent.setMakeTime(new Date());
+            agent.setModifyTime(new Date());
+            result = lcagentMapper.insertSelective(agent);
         } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
@@ -82,16 +76,13 @@ public class AgencyService {
     }
 
     // ---------------------------------------------------------------------
-    // UPDATE AGENCY
+    // UPDATE ENTITY
     // ---------------------------------------------------------------------
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int updateAgency(JSONObject obj) throws Exception {
-        LcAgency agency = JSONObject.parseObject(obj.toJSONString(), LcAgency.class);
+    public int updateAgent(Lcagent agent) throws Exception {
         int result = 0;
         try {
-
-            agency.setModifyTime(new Date());
-            result = lcAgencyMapper.updateByPrimaryKeySelective(agency);
+            result = lcagentMapper.updateByPrimaryKeySelective(agent);
         } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
@@ -99,32 +90,28 @@ public class AgencyService {
     }
 
     // ---------------------------------------------------------------------
-    // DELETE AGENCY
+    // DELETE
     // ---------------------------------------------------------------------
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int deleteAgency(Long id) throws Exception {
+    public int deleteAgent(Long id) throws Exception {
         int result = 0;
         try {
-            result = lcAgencyMapper.deleteByPrimaryKey(id);
+            result = lcagentMapper.deleteByPrimaryKey(id);
         } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
     }
 
-
-    public List<Lcagent> getAgentsByCompany(Long companyId, Integer pageNo, Integer pageSize) {
-        int offset = (pageNo - 1) * pageSize;
-        return lcagencyMapper.selectAgentsByCompany(companyId, offset, pageSize);
+    // ---------------------------------------------------------------------
+    // UPDATE LOGO
+    // ---------------------------------------------------------------------
+    public int updateLogo(Long id, byte[] logo) {
+        try {
+            return lcagentMapper.updateLogo(id, logo);
+        } catch (Exception e) {
+            JshException.writeFail(logger, e);
+            return -1;
+        }
     }
-
-    public int countAgentsByCompany(Long companyId) {
-        return lcagencyMapper.countAgentsByCompany(companyId);
-    }
-
-
-    public int updateLogo(Long id, byte[] fullLogo, byte[] thumb) {
-        return lcAgencyMapper.updateLogo(id, fullLogo, thumb);
-    }
-
 }

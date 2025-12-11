@@ -73,13 +73,33 @@ export const constantRouterMap = [
         component: () => import('@views/system/AgencyList.vue')
       },
       {
-        path: ':id',
+        path: 'detail_info',
         name: 'AgencyDetail',
-        meta: { title: 'Agency Detail', keepAlive: false, permissionList: [] },
+        meta: { title: 'Agency Detail' , keepAlive: false},
         component: () => import('@views/system/AgencyDetail.vue')
+      }
+
+    ]
+  },
+
+  // ---------------------------------------
+// Lcagent Module (similar to Agency)
+// MUST be inside TabLayout
+// ---------------------------------------
+  {
+    path: '/lcagent',
+    component: TabLayout,
+    redirect: '/lcagent/index',
+    children: [
+      {
+        path: 'index',
+        name: 'Lcagent',
+        meta: { title: 'Agents' },
+        component: () => import('@views/system/LcagentList.vue')
       }
     ]
   },
+
   {
     path: '/404',
     component: () => import(/* webpackChunkName: "fail" */ '@/views/exception/404')

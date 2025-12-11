@@ -1,6 +1,18 @@
-import Vue from 'vue'
 import { axios } from '@/utils/request'
+import Vue from 'vue'
+import { ACCESS_TOKEN } from '@/store/mutation-types'
 
+axios.interceptors.request.use(config => {
+  const token = Vue.ls.get(ACCESS_TOKEN)
+  if (token) {
+    config.headers['X-Access-Token'] = token
+  }
+  return config
+}, error => {
+  return Promise.reject(error)
+})
+
+export { axios }
 const api = {
   user: '/api/user',
   role: '/api/role',

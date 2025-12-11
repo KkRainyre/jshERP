@@ -79,7 +79,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, type, organ_id, hands_person_id, creator, change_amount, discount_money, total_price, 
+    id, type, organ_id, hands_person_id, creator, change_amount, discount_money, total_price,
     account_id, bill_no, bill_time, remark, file_name, status, source, tenant_id, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.AccountHeadExample" resultMap="BaseResultMap">
@@ -97,7 +97,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
+    select
     <include refid="Base_Column_List" />
     from jsh_account_head
     where id = #{id,jdbcType=BIGINT}
@@ -113,17 +113,17 @@
     </if>
   </delete>
   <insert id="insert" parameterType="com.jsh.erp.datasource.entities.AccountHead">
-    insert into jsh_account_head (id, type, organ_id, 
-      hands_person_id, creator, change_amount, 
-      discount_money, total_price, account_id, 
-      bill_no, bill_time, remark, 
-      file_name, status, source, 
+    insert into jsh_account_head (id, type, organ_id,
+      hands_person_id, creator, change_amount,
+      discount_money, total_price, account_id,
+      bill_no, bill_time, remark,
+      file_name, status, source,
       tenant_id, delete_flag)
-    values (#{id,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, #{organId,jdbcType=BIGINT}, 
-      #{handsPersonId,jdbcType=BIGINT}, #{creator,jdbcType=BIGINT}, #{changeAmount,jdbcType=DECIMAL}, 
-      #{discountMoney,jdbcType=DECIMAL}, #{totalPrice,jdbcType=DECIMAL}, #{accountId,jdbcType=BIGINT}, 
-      #{billNo,jdbcType=VARCHAR}, #{billTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, 
-      #{fileName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, 
+    values (#{id,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, #{organId,jdbcType=BIGINT},
+      #{handsPersonId,jdbcType=BIGINT}, #{creator,jdbcType=BIGINT}, #{changeAmount,jdbcType=DECIMAL},
+      #{discountMoney,jdbcType=DECIMAL}, #{totalPrice,jdbcType=DECIMAL}, #{accountId,jdbcType=BIGINT},
+      #{billNo,jdbcType=VARCHAR}, #{billTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR},
+      #{fileName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR},
       #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.AccountHead">

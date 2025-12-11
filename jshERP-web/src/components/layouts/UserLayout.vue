@@ -3,7 +3,11 @@
     <div id="userLayout" :class="['user-layout-wrapper', device]">
       <div class="container">
         <div class="poster-img">
-          <img src="/static/rightImg.png?v=320">
+          <!-- You can replace this with a real image or keep the gradient -->
+          <div class="brand-overlay">
+            <h1 href="https://baganti.com/">Baganti ERP</h1>
+            <p>Enterprise Resource Planning</p>
+          </div>
         </div>
         <div class="right-form">
           <div class="top">
@@ -11,11 +15,13 @@
               <a-row>
                 <a-col>
                   <a href="/">
-                    <span class="title">Baganti ERP</span>
-                    <small class="desc">V1</small>
+                    <span class="title">Welcome Back</span>
                   </a>
                 </a-col>
               </a-row>
+            </div>
+            <div class="desc">
+              Please login to your account
             </div>
           </div>
           <route-view></route-view>
@@ -26,41 +32,41 @@
       <div class="third-party-platform" v-if="isShowRight">
         <div class="platform-info" @click="openAndroid()">
           <img src="/static/Android.png" style="height:30px" >
-          <span>安卓版</span>
+          <span>Android</span>
         </div>
         <div style="width:50px"></div>
         <div class="platform-info" @click="openIPhone()">
           <img src="/static/iPhone.png" style="height:30px" >
-          <span>iPhone版</span>
+          <span>iPhone</span>
         </div>
         <div style="width:50px"></div>
         <div class="platform-info" @click="openMiniProgram()">
           <img src="/static/mini-program.png" style="height:30px" >
-          <span>小程序版</span>
+          <span>Mini Program</span>
         </div>
       </div>
       <p>
         <span v-if="this.isShowRight">Baganti Tech</span>
         © 2015-2030 Baganti Inc - All Right Reserved
-        <a style="color:#00458a; padding-right: 10px" :href="systemUrl" target="_blank">Offical Website</a>
+<!--        <a style="color:#00458a; padding-right: 10px" :href="systemUrl" target="_blank">Official Website</a>-->
         <span v-if="this.isShowRight"><a href="http://beian.miit.gov.cn/" target="_blank">苏ICP备2021042833号</a></span>
       </p>
     </div>
-    <a-modal v-model="isAndroidShow" title="微信扫一扫下载安卓版" width="200" centered>
+    <a-modal v-model="isAndroidShow" title="Download Android App" width="200" centered>
       <template slot="footer">
-        <a-button key="back" @click="handleAndroidCancel">取消</a-button>
+        <a-button key="back" @click="handleAndroidCancel">Cancel</a-button>
       </template>
       <div class="platform-modal"><img src="/static/android-code.png" style="width:200px" /></div>
     </a-modal>
-    <a-modal v-model="isIphoneShow" title="微信扫一扫下载iPhone版" width="200" centered>
+    <a-modal v-model="isIphoneShow" title="Download iPhone App" width="200" centered>
       <template slot="footer">
-        <a-button key="back" @click="handleIphoneCancel">取消</a-button>
+        <a-button key="back" @click="handleIphoneCancel">Cancel</a-button>
       </template>
       <div class="platform-modal"><img src="/static/iphone-code.png" style="width:200px" /></div>
     </a-modal>
-    <a-modal v-model="isMiniProgramShow" title="微信扫一扫使用小程序版" width="200" centered>
+    <a-modal v-model="isMiniProgramShow" title="WeChat Mini Program" width="200" centered>
       <template slot="footer">
-        <a-button key="back" @click="handleMiniProgramCancel">取消</a-button>
+        <a-button key="back" @click="handleMiniProgramCancel">Cancel</a-button>
       </template>
       <div class="platform-modal"><img src="/static/weixin-code.png" style="width:200px;" /></div>
     </a-modal>
@@ -125,18 +131,11 @@
 <style scoped>
   .back-layout {
     width: 100%;
-    height: 100%;
-    background-image: url(/static/bgimg.png?v=1);
-    background-size: cover;
-    background-repeat: no-repeat;
-    position: relative;
+    height: 100vh;
     overflow: hidden;
-  }
-  #userLayout.user-layout-wrapper.mobile {
-    position: fixed;
-    left: 6%;
-    top: 10%;
-    margin-left: 0px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
   }
   .third-party-platform {
     display: flex;
@@ -158,98 +157,125 @@
     border:1px solid #eee;
   }
 </style>
+
 <style lang="less" scoped>
   #userLayout.user-layout-wrapper {
-    position: fixed;
-    left: 50%;
-    top: 12%;
-    margin-left: -543px;
     height: 100%;
+    width: 100%;
 
     &.mobile {
       .container {
-        .main {
-          max-width: 368px;
-          width: 98%;
+        flex-direction: column;
+        .poster-img {
+          display: none;
         }
-      }
-      .poster-img {
-        display: none;
+        .right-form {
+          width: 100%;
+          padding: 20px;
+        }
       }
     }
 
     .container {
-      float: left;
+      display: flex;
       width: 100%;
-      z-index: 99;
-      height: 70%;
-
+      height: 100%;
+      
       .poster-img {
-        float: left;
-        height: 100%;
+        flex: 1.2; /* Takes up more space (approx 55-60%) */
+        background: linear-gradient(135deg, #001529 0%, #003a75 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        color: white;
+
+        /* Abstract pattern overlay */
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-image: 
+            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 20%),
+            radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 20%);
+          background-size: 100% 100%;
+        }
+
+        .brand-overlay {
+          z-index: 2;
+          text-align: center;
+          
+          h1 {
+            font-size: 48px;
+            color: white;
+            margin-bottom: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+          }
+          
+          p {
+            font-size: 20px;
+            color: rgba(255,255,255,0.8);
+            font-weight: 300;
+          }
+        }
       }
 
       .right-form {
-        background-size: 100%;
+        flex: 0.8; /* Takes up less space */
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
         position: relative;
-        width: 340px;
-        height: 460px;
-        background: rgba(255, 255, 255, 1);
-        border-radius: 8px;
-        right: 0;
-        top: 0;
-        padding: 10px 30px 0 30px;
-        margin-top: 50px;
-        -webkit-box-shadow: 0 2px 6px 0 rgb(200 200 200);
-        box-shadow: 0 2px 6px 0 rgb(200 200 200);
-        overflow: hidden;
-
-        a {
-          text-decoration: none;
-        }
+        z-index: 1;
 
         .top {
           text-align: center;
+          margin-bottom: 40px;
+          width: 100%;
+          max-width: 360px;
 
           .header {
-            height: 44px;
-            line-height: 44px;
-            margin-top: 35px;
-            margin-bottom: 35px;
+            margin-bottom: 16px;
             .title {
-              font-size: 35px;
-              color: #666;
-              font-family: "Chinese Quote", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-              font-weight: 700;
-              position: relative;
-              top: 2px;
-            }
-            .desc {
-              font-size: 16px;
-              color: #666;
-              margin-top: 12px;
-              margin-left: 10px;
-              margin-bottom: 40px;
+              font-size: 28px;
+              color: #333;
+              font-weight: 600;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             }
           }
-        }
-
-        .main {
-          min-width: 260px;
-          width: 280px;
-          margin: 0 auto;
+          .desc {
+            font-size: 16px;
+            color: rgba(0, 0, 0, 0.45);
+          }
         }
       }
     }
   }
+
   .footer {
     position: absolute;
-    bottom: 0;
-    padding: 0 16px;
-    margin: 48px 0 12px;
+    bottom: 20px;
+    width: 100%;
     text-align: center;
-    left: 33%;
-    right: 33%;
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 12px;
+    pointer-events: none;
+    
+    .third-party-platform {
+      pointer-events: auto;
+    }
+    
+    p {
+      pointer-events: auto;
+    }
 
     .links {
       margin-bottom: 8px;
@@ -261,10 +287,6 @@
           margin-right: 40px;
         }
       }
-    }
-    .copyright {
-      color: rgba(0, 0, 0, 0.45);
-      font-size: 14px;
     }
   }
 </style>

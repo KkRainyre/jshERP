@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsh.erp.datasource.mappers.LcagentMapper">
+
+    <!-- ========= RESULT MAPPING ========= -->
+    <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.Lcagent">
+        <id column="id" property="id"/>
+
+        <result column="employ_id"    property="employId"/>
+        <result column="company_id"   property="companyId"/>
+        <result column="title"        property="title"/>
+        <result column="logo"         property="logo"/>
+        <result column="address"      property="address"/>
+        <result column="currency"     property="currency"/>
+        <result column="remark"       property="remark"/>
+        <result column="phone"        property="phone"/>
+        <result column="office_num"   property="officeNum"/>
+        <result column="phone_ext"    property="phoneExt"/>
+
+        <result column="EXT1"         property="ext1"/>
+        <result column="EXT2"         property="ext2"/>
+        <result column="EXT3"         property="ext3"/>
+        <result column="EXT4"         property="ext4"/>
+        <result column="EXT5"         property="ext5"/>
+
+        <result column="make_time"    property="makeTime"/>
+        <result column="modify_time"  property="modifyTime"/>
+        <result column="tenant_id"    property="tenantId"/>
+        <result column="name"         property="name"/>
+        <result column="category"     property="category"/>
+
+        <result column="shipping"     property="shipping"/>
+        <result column="email"        property="email"/>
+    </resultMap>
+
+    <!-- ========= BASE COLUMNS ========= -->
+    <sql id="Base_Column_List">
+        id,
+        employ_id, company_id, title, logo, address, currency, remark,
+        phone, office_num, phone_ext,
+        EXT1, EXT2, EXT3, EXT4, EXT5,
+        make_time, modify_time,
+        tenant_id, name, category,
+        shipping, email
+    </sql>
+
+    <!-- ========= SELECT ========= -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM lc_agent
+        WHERE id = #{id}
+    </select>
+
+    <!-- ========= DELETE ========= -->
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM lc_agent WHERE id = #{id}
+    </delete>
+
+    <!-- ========= INSERT ========= -->
+    <insert id="insert">
+        INSERT INTO lc_agent (
+        <include refid="Base_Column_List"/>
+        ) VALUES (
+        #{id},
+        #{employId}, #{companyId}, #{title}, #{logo}, #{address}, #{currency}, #{remark},
+        #{phone}, #{officeNum}, #{phoneExt},
+        #{ext1}, #{ext2}, #{ext3}, #{ext4}, #{ext5},
+        #{makeTime}, #{modifyTime},
+        #{tenantId}, #{name}, #{category},
+        #{shipping}, #{email}
+        )
+    </insert>
+
+    <!-- ========= INSERT SELECTIVE ========= -->
+    <insert id="insertSelective" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO lc_agent
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="employId != null">employ_id,</if>
+            <if test="companyId != null">company_id,</if>
+            <if test="title != null">title,</if>
+            <if test="logo != null">logo,</if>
+            <if test="address != null">address,</if>
+            <if test="currency != null">currency,</if>
+            <if test="remark != null">remark,</if>
+            <if test="phone != null">phone,</if>
+            <if test="officeNum != null">office_num,</if>
+            <if test="phoneExt != null">phone_ext,</if>
+            <if test="ext1 != null">EXT1,</if>
+            <if test="ext2 != null">EXT2,</if>
+            <if test="ext3 != null">EXT3,</if>
+            <if test="ext4 != null">EXT4,</if>
+            <if test="ext5 != null">EXT5,</if>
+            <if test="makeTime != null">make_time,</if>
+            <if test="modifyTime != null">modify_time,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="name != null">name,</if>
+            <if test="category != null">category,</if>
+            <if test="shipping != null">shipping,</if>
+            <if test="email != null">email,</if>
+        </trim>
+
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="employId != null">#{employId},</if>
+            <if test="companyId != null">#{companyId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="logo != null">#{logo},</if>
+            <if test="address != null">#{address},</if>
+            <if test="currency != null">#{currency},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="officeNum != null">#{officeNum},</if>
+            <if test="phoneExt != null">#{phoneExt},</if>
+            <if test="ext1 != null">#{ext1},</if>
+            <if test="ext2 != null">#{ext2},</if>
+            <if test="ext3 != null">#{ext3},</if>
+            <if test="ext4 != null">#{ext4},</if>
+            <if test="ext5 != null">#{ext5},</if>
+            <if test="makeTime != null">#{makeTime},</if>
+            <if test="modifyTime != null">#{modifyTime},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="name != null">#{name},</if>
+            <if test="category != null">#{category},</if>
+            <if test="shipping != null">#{shipping},</if>
+            <if test="email != null">#{email},</if>
+        </trim>
+    </insert>
+
+    <!-- ========= UPDATE SELECTIVE ========= -->
+    <update id="updateByPrimaryKeySelective">
+        UPDATE lc_agent
+        <set>
+            <if test="employId != null">employ_id = #{employId},</if>
+            <if test="companyId != null">company_id = #{companyId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="logo != null">logo = #{logo},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="currency != null">currency = #{currency},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="officeNum != null">office_num = #{officeNum},</if>
+            <if test="phoneExt != null">phone_ext = #{phoneExt},</if>
+            <if test="ext1 != null">EXT1 = #{ext1},</if>
+            <if test="ext2 != null">EXT2 = #{ext2},</if>
+            <if test="ext3 != null">EXT3 = #{ext3},</if>
+            <if test="ext4 != null">EXT4 = #{ext4},</if>
+            <if test="ext5 != null">EXT5 = #{ext5},</if>
+            <if test="makeTime != null">make_time = #{makeTime},</if>
+            <if test="modifyTime != null">modify_time = #{modifyTime},</if>
+            <if test="tenantId != null">tenant_id = #{tenantId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="shipping != null">shipping = #{shipping},</if>
+            <if test="email != null">email = #{email},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ========= UPDATE FULL ========= -->
+    <update id="updateByPrimaryKey">
+        UPDATE lc_agent
+        SET employ_id   = #{employId},
+            company_id  = #{companyId},
+            title       = #{title},
+            logo        = #{logo},
+            address     = #{address},
+            currency    = #{currency},
+            remark      = #{remark},
+            phone       = #{phone},
+            office_num  = #{officeNum},
+            phone_ext   = #{phoneExt},
+            EXT1        = #{ext1},
+            EXT2        = #{ext2},
+            EXT3        = #{ext3},
+            EXT4        = #{ext4},
+            EXT5        = #{ext5},
+            make_time   = #{makeTime},
+            modify_time = #{modifyTime},
+            tenant_id   = #{tenantId},
+            name        = #{name},
+            category    = #{category},
+            shipping    = #{shipping},
+            email       = #{email}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ========= UPDATE LOGO ONLY ========= -->
+    <update id="updateLogo">
+        UPDATE lc_agent
+        SET logo = #{logo}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ========= PAGINATION / COMPANY FILTER ========= -->
+    <select id="selectAgentsByCompany" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM lc_agent
+        WHERE company_id = #{companyId}
+        ORDER BY id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countAgentsByCompany" resultType="int">
+        SELECT COUNT(*)
+        FROM lc_agent
+        WHERE company_id = #{companyId}
+    </select>
+
+</mapper>

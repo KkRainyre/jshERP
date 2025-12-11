@@ -3,7 +3,7 @@
     <!-- Top Actions / Breadcrumb area -->
     <div class="page-header-actions">
       <div class="header-left">
-        <a-button type="link" icon="left" class="back-btn">Contacts</a-button>
+        <a-button type="link" icon="left" class="back-btn" @click="handleBack">Back</a-button>
         <span class="separator">|</span>
         <span class="contact-name">{{ agency.name }}</span>
       </div>
@@ -18,27 +18,42 @@
         <a-card :bordered="false" class="left-card hover-shadow">
           <div class="profile-header">
             <div class="avatar-wrapper">
-              <a-avatar :size="84" style="background-color: #ff7a59; font-size: 32px">BH</a-avatar>
+              <a-avatar
+                :size="84"
+                v-if="agency.logo"
+                :src="'data:image/jpeg;base64,' + agency.logo"
+              />
+
+              <a-avatar
+                :size="84"
+                v-else
+                style="background-color: #ff7a59; font-size: 32px"
+              >
+                {{ agencyInitial }}
+              </a-avatar>
               <div class="online-status"></div>
             </div>
             <div class="profile-info">
-              <h3 class="name">Brian Halligan <br/>(Sample Contact)</h3>
-              <p class="title">Executive Chairperson at HubSpot</p>
-              <p class="email">{{ agency.email }} <a-icon type="copy" class="copy-icon" /></p>
+              <h3 class="name">{{agency.name}} <br/>(Sample Company)</h3>
+              <p class="title">{{agency.website}}</p>
+              <p class="email">
+                <span @click="openEmail">{{ agency.email }}</span>
+                <a-icon type="copy" class="copy-icon" @click.stop="copyEmail" />
+              </p>
             </div>
           </div>
 
           <div class="quick-actions">
             <div class="action-item">
-              <a-button shape="circle" icon="file-text" size="large" />
+              <a-button shape="circle" icon="file-text" size="large" @click.native="handleOpenNotes" />
               <span>Note</span>
             </div>
             <div class="action-item">
-              <a-button shape="circle" icon="mail" size="large" />
+              <a-button shape="circle" icon="mail" size="large" @click.native="openEmail" />
               <span>Email</span>
             </div>
             <div class="action-item">
-              <a-button shape="circle" icon="phone" size="large" />
+              <a-button shape="circle" icon="phone" size="large" @click.native="handleCallPhone" />
               <span>Call</span>
             </div>
             <div class="action-item">
@@ -60,8 +75,8 @@
           <a-collapse defaultActiveKey="1" :bordered="false" expandIconPosition="right">
             <a-collapse-panel header="Key information" key="1" class="custom-panel">
               <div class="info-row">
-                <label>Contact owner</label>
-                <div class="value text-muted">No owner</div>
+                <label>Tier</label>
+                <div class="value text-muted">{{agency.tier}}</div>
               </div>
               <div class="info-row">
                 <label>Lead Status</label>
@@ -72,8 +87,8 @@
                 <div class="value">Lead</div>
               </div>
               <div class="info-row">
-                <label>Lost Contacted</label>
-                <div class="value">12/02/2025 6:30 PM EST</div>
+                <label>Last Contacted</label>
+                <div class="value">{{agency.modify_time}}</div>
               </div>
             </a-collapse-panel>
           </a-collapse>
@@ -86,22 +101,41 @@
           <a-tabs defaultActiveKey="1" class="custom-tabs" :tabBarStyle="{ padding: '0 16px', marginBottom: '0' }">
             <a-tab-pane key="1" tab="Agent">
               <div class="tab-content">
-                <!-- Breeze Summary -->
-                <div class="breeze-summary">
-                  <div class="summary-header">
-                    <h4>Breeze record summary</h4>
-                    <a-tag color="#ff7a59" style="color: white; border: none;">AI</a-tag>
-                  </div>
-                  <div class="summary-body">
-                    <p>
-                      The most recent activity is a call with Brian Halligan on December 2, 2025, where interest was expressed in the extra tasty cupcake option and a meeting was scheduled for next week [SEARCH_RESULT_2]. Prior to that, a task was created to follow up with Brian next Tuesday about cupcake models [SEARCH_RESULT_3], and an email was sent on November 30, 2025, introducing the company's cupcake offerings [SEARCH_RESULT_4]. Additionally, a meeting is scheduled for December 5, 2025.
-                    </p>
-                    <a-button size="small" icon="plus" class="ask-btn">Ask a question</a-button>
+
+                <div class="section-block">
+                  <div class="record-table-list">
+
+                    <a-table
+                      size="small"
+                      rowKey="id"
+                      :columns="listColumns"
+                      :dataSource="activities"
+                      :pagination="{ pageSize: 5 }"
+                      :loading="loading"
+                      :scroll="{ x: 1300 }"
+                    >
+                      <!-- Logo Render -->
+                      <template slot="logo" slot-scope="text">
+                         <img v-if="text" :src="'data:image/jpeg;base64,' + text" style="width: 30px; height: 30px; object-fit: contain;" />
+                      </template>
+                      <!-- Action -->
+                      <template slot="action" slot-scope="text, record">
+                        <a @click="handleEdit(record)">edit</a>
+                        <a-divider type="vertical" />
+                        <a-popconfirm title="Sure to delete?" @confirm="handleDelete(record.id)">
+                          <a style="color: red;">delete</a>
+                        </a-popconfirm>
+                      </template>
+                    </a-table>
+
+                    <lcagent-modal ref="lcagentModal" @saved="loadActivities" />
+                    <import-file-modal ref="modalImportForm" @ok="loadActivities"></import-file-modal>
                   </div>
                 </div>
 
-                <!-- Contact Profile -->
-                <div class="section-block">
+                  <div class="section-block">
+
+
                   <div class="section-header">
                     <h4>Contact profile</h4>
                     <a-icon type="setting" />
@@ -110,7 +144,7 @@
                     <a-col :span="12">
                       <div class="field-group">
                         <label>Company name</label>
-                        <div class="field-value">HubSpot</div>
+                        <div class="field-value">{{agency.name}}</div>
                       </div>
                       <div class="field-group">
                         <label>State/Region</label>
@@ -120,7 +154,7 @@
                     <a-col :span="12">
                       <div class="field-group">
                         <label>Street address</label>
-                        <div class="field-value">--</div>
+                        <div class="field-value">{{ agency.address }}</div>
                       </div>
                       <div class="field-group">
                         <label>Email</label>
@@ -152,7 +186,7 @@
 
                 <!-- Communication subscriptions -->
                 <div class="section-block">
-                   <div class="section-header">
+                  <div class="section-header">
                     <h4>Communication subscriptions</h4>
                   </div>
                   <p class="sub-text">Use subscription types to manage the communications this contact receives from you.</p>
@@ -183,7 +217,7 @@
           <a-collapse defaultActiveKey="1" :bordered="false" expandIconPosition="left">
             <a-collapse-panel key="1" class="right-panel">
               <template slot="header">
-                <span class="panel-title">Companies (1)</span>
+                <span class="panel-title">Companies </span>
               </template>
               <a-icon slot="extra" type="plus" class="add-icon" />
 
@@ -200,7 +234,7 @@
             </a-collapse-panel>
 
             <a-collapse-panel key="2" class="right-panel">
-               <template slot="header">
+              <template slot="header">
                 <span class="panel-title">Deals (0)</span>
               </template>
               <a-icon slot="extra" type="plus" class="add-icon" />
@@ -211,18 +245,18 @@
             </a-collapse-panel>
 
             <a-collapse-panel key="3" class="right-panel">
-               <template slot="header">
+              <template slot="header">
                 <span class="panel-title">Tickets (0)</span>
               </template>
               <a-icon slot="extra" type="plus" class="add-icon" />
               <div class="empty-state">
-                 <img src="https://static.hsappstatic.net/ui-images/static-2.427/optimized/empty-state-charts.svg" width="60" style="opacity: 0.5; margin-bottom: 10px;" />
+                <img src="https://static.hsappstatic.net/ui-images/static-2.427/optimized/empty-state-charts.svg" width="60" style="opacity: 0.5; margin-bottom: 10px;" />
                 <p>Track the customer requests associated with this record.</p>
               </div>
             </a-collapse-panel>
 
-             <a-collapse-panel key="4" class="right-panel">
-               <template slot="header">
+            <a-collapse-panel key="4" class="right-panel">
+              <template slot="header">
                 <span class="panel-title">Attachments</span>
               </template>
               <a-icon slot="extra" type="plus" class="add-icon" />
@@ -232,28 +266,184 @@
         </a-card>
       </a-col>
     </a-row>
+
+
+    <!-- Notes Modal -->
+    <a-modal
+      title="Notes"
+      :visible="notesVisible"
+      @ok="handleSaveNotes"
+      @cancel="notesVisible = false"
+      :maskClosable="false"
+      width="600px"
+    >
+      <a-textarea 
+        v-model="notesContent" 
+        :rows="12" 
+        placeholder="Enter notes here..." 
+        style="resize: none; border: 1px solid #e8e8e8; background: #fafafa; padding: 12px; border-radius: 4px;"
+      />
+    </a-modal>
   </div>
 </template>
 
 <script>
+import { getAction, deleteAction } from '@/api/manage'
+import { editAgency } from '@/api/api'
+import ImportFileModal from "@comp/tools/ImportFileModal.vue";
+import LcagentModal from "./modules/LcagentModal.vue";
+
 export default {
-  name: 'Agency',
+  name: 'agent-overview',
+  components: {ImportFileModal, LcagentModal},
   data() {
     return {
       agencyId: null,
-      agency: {}   // will hold the data from backend
+      loading: false,
+      agency: {},
+      activities: [],
+      notesVisible: false,
+      notesContent: '',
+      currentIndex: 0,
+      total: 0,
+      listColumns: [
+        { title: 'Avatar', dataIndex: 'logo', scopedSlots: { customRender: 'logo' }, align:"center", width: 60 },
+        { title: 'Name', dataIndex: 'name', width: 150 , align:"center"},
+        { title: 'Phone', dataIndex: 'phone', width: 100 , align:"center"},
+        { title: 'Email', dataIndex: 'email', width: 150 , align:"center"},
+        { title: 'Shipping', dataIndex: 'shipping', width: 80 , align:"center"},
+        { title: 'Currency', dataIndex: 'currency', width: 80 , align:"center"},
+        { title: 'Category', dataIndex: 'category', width: 80 , align:"center"},
+        { title: 'Remark', dataIndex: 'remark', width: 150 , align:"center"},
+      ]
     }
   },
   created() {
-    this.agencyId = this.$route.params.id;
+
+    this.agencyId = this.$route.query.id || this.$route.params.id;
+    console.log("Agency ID:", this.agencyId);
+
     this.loadAgency();
+    this.loadActivities();
+    console.log('editAgency loaded:', !!editAgency);
   },
   methods: {
     async loadAgency() {
-      const res = await getAction(`/agency/info?id=${this.agencyId}`);
-      this.agency = res.data;
+      if (!this.agencyId) return;
+      const res = await getAction('/agency/info', { id: this.agencyId });
+      if (res && res.code === 200 && res.data && res.data.info) {
+        this.agency = res.data.info;
+      }
+    },
+    async loadActivities() {
+      this.loading = true;
+      try {
+        const res = await getAction(`/agency/agent`, { id: this.agencyId });
+        if (res && res.data) {
+          this.activities = Array.isArray(res.data.records) ? res.data.records : (Array.isArray(res.data) ? res.data : []);
+          this.total = this.activities.length;
+        }
+      } catch (e) {
+        console.error("Failed to load detail info", e);
+        this.activities = [];
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    modalFormOk() {
+      this.loadActivities();
+    },
+
+    handleBack() {
+      this.$router.push({ name: 'Agency' });
+    },
+
+    handleAdd() {
+      this.$refs.lcagentModal.open(null, { companyId: this.agencyId });
+    },
+
+    handleEdit(record) {
+      this.$refs.lcagentModal.open(record);
+    },
+
+    async handleDelete(id) {
+       await deleteAction(`/lcagent/delete`, { ids: id });
+       this.$message.success('Deleted');
+       this.loadActivities();
+    },
+
+    copyEmail() {
+      if (this.agency.email) {
+        navigator.clipboard.writeText(this.agency.email).then(() => {
+          this.$message.success('Email copied to clipboard');
+        }).catch(err => {
+          this.$message.error('Failed to copy email');
+        });
+      }
+    },
+
+    openEmail() {
+      if (this.agency.email) {
+        window.location.href = `mailto:${this.agency.email}`;
+      }
+    },
+
+    handleCallPhone() {
+      // Debug message
+      this.$message.info('Debug: Call button clicked');
+      
+      if (this.agency.phone) {
+        // Copy to clipboard first so user has it if call fails
+        navigator.clipboard.writeText(this.agency.phone).then(() => {
+          this.$message.success(`Phone number copied: ${this.agency.phone}`);
+        }).catch(() => {});
+
+        // Attempt to open default calling app
+        window.location.href = `tel:${this.agency.phone}`;
+      } else {
+        this.$message.warning('No phone number available');
+      }
+    },
+
+    handleOpenNotes() {
+      // Debug message
+      this.$message.info('Debug: Note button clicked');
+      console.log('openNotes clicked');
+      console.log('Current remarks:', this.agency.remarks);
+      this.notesContent = this.agency.remarks || '';
+      this.notesVisible = true;
+      console.log('notesVisible set to:', this.notesVisible);
+    },
+
+    async handleSaveNotes() {
+       const formData = { ...this.agency, remarks: this.notesContent };
+       
+       try {
+         const res = await editAgency(formData);
+         if (res && res.code === 200) {
+            this.$message.success('Notes saved');
+            this.agency.remarks = this.notesContent; // Update local state
+            this.notesVisible = false;
+         } else {
+            this.$message.warning(res.data.message || 'Failed to save notes');
+         }
+       } catch(e) {
+         console.error(e);
+         this.$message.error('Error saving notes');
+       }
     }
   }
+  ,
+  computed: {
+    agencyInitial() {
+      return this.agency && this.agency.name
+        ? this.agency.name.charAt(0).toUpperCase()
+        : "A";
+    }
+  }
+
+
 }
 
 </script>
@@ -339,9 +529,12 @@ export default {
     }
     .email {
       color: #516f90;
+      cursor: pointer;
+      &:hover { color: #ff7a59; }
       .copy-icon {
         cursor: pointer;
         margin-left: 4px;
+        color: #516f90;
         &:hover { color: #ff7a59; }
       }
     }
@@ -478,6 +671,52 @@ export default {
       font-size: 13px;
       margin-bottom: 8px;
     }
+
+    .record-pagination {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      
+      .page-indicator {
+        display: flex;
+        align-items: center;
+        margin: 0 8px;
+        font-size: 13px;
+        
+        .current {
+          border: 1px solid #cbd6e2;
+          background-color: #fff;
+          border-radius: 3px;
+          padding: 2px 8px;
+          color: #33475b;
+          margin-right: 4px;
+          min-width: 32px;
+          text-align: center;
+        }
+        .divider, .total {
+           margin: 0 2px;
+           color: #7c98b6;
+        }
+      }
+      
+      .ant-btn {
+        color: #7c98b6;
+        padding: 0 4px;
+        height: auto;
+        line-height: 1;
+        border: none;
+        box-shadow: none;
+        
+        &:hover {
+          color: #ff7a59;
+          background: transparent;
+        }
+        &[disabled] {
+          color: #dfe3eb;
+          background: transparent;
+        }
+      }
+    }
   }
 }
 
@@ -534,6 +773,10 @@ export default {
       padding: 16px 0;
       color: #516f90;
       font-size: 13px;
+    }
+
+    /deep/ .ant-collapse-header {
+      padding: 12px 16px 12px 32px !important;
     }
   }
 }

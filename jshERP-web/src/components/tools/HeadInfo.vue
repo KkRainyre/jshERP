@@ -14,8 +14,8 @@
         default: ''
       },
       content: {
-        type: Number,
-        default: ''
+        type: [Number, String],
+        default: 0
       },
       bordered: {
         type: Boolean,
@@ -24,6 +24,15 @@
       center: {
         type: Boolean,
         default: true
+      }
+    },
+    computed: {
+      normalizedContent() {
+        if (this.content === null || this.content === undefined || this.content === '') {
+          return 0;
+        }
+        const num = typeof this.content === 'string' ? parseFloat(this.content) : this.content;
+        return isNaN(num) ? 0 : num;
       }
     }
   }
