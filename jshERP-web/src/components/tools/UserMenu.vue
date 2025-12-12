@@ -35,7 +35,7 @@
     <span class="action">
       <a-tooltip>
         <template slot="title">官方网站</template>
-        <a target="_blank" :href="systemUrl">
+        <a target="_blank" :href="tenantWebsiteUrl">
           <a-icon type="bank" style="font-size: 16px;" />
         </a>
       </a-tooltip>
@@ -44,23 +44,23 @@
     <a-dropdown>
       <span v-if="isDesktop()" class="action ant-dropdown-link user-dropdown-menu">
         <a-icon type="down-circle"/>
-        <span style="margin-left:4px">欢迎您，{{ nickname() }}</span>
+        <span style="margin-left:4px">Welcome，{{ nickname() }}</span>
       </span>
       <a-menu slot="overlay" class="user-dropdown-menu-wrapper">
         <a-menu-item key="3"  @click="systemSetting">
            <a-icon type="tool"/>
-           <span>界面设置</span>
+           <span>Interface Setting</span>
         </a-menu-item>
         <a-menu-item key="4" @click="updatePassword">
           <a-icon type="setting"/>
-          <span>密码修改</span>
+          <span>Change Password</span>
         </a-menu-item>
       </a-menu>
     </a-dropdown>
     <span class="action">
       <a class="logout_title" href="javascript:;" @click="handleLogout">
         <a-icon type="logout"/>
-        <span>&nbsp;退出登录</span>
+        <span>&nbsp;Log Out</span>
       </a>
     </span>
     <user-password ref="userPassword"></user-password>
@@ -114,14 +114,33 @@
       this.searchMenuOptions=[...lists]
       this.isShowAd()
     },
-    computed: {
-      ...mapState({
-        // 后台菜单
-        permissionMenuList: state => state.user.permissionList
 
-      })
-    },
     /* update_end author:zhaoxin date:20191129 for: 做头部菜单栏导航*/
+    computed: {
+      tenantWebsiteUrl() {
+        try {
+          const user = this.userInfo && typeof this.userInfo === 'function' ? this.userInfo() : null
+          const tenantId = user && user.tenantId ? user.tenantId : null
+          
+          console.log('UserMenu - Tenant ID:', tenantId)
+          console.log('UserMenu - User object:', user)
+          
+          // Map tenant IDs to their official websites
+          const tenantWebsites = {
+            151: 'https://eterna-light.com/',
+            63: 'https://www.baganti.com/'
+          }
+          
+          // Return tenant-specific URL or default
+          const url = tenantWebsites[tenantId] || 'https://www.baganti.com/'
+          console.log('UserMenu - Website URL:', url)
+          return url
+        } catch (e) {
+          console.error('Error in tenantWebsiteUrl:', e)
+          return 'https://www.baganti.com/'
+        }
+      }
+    },
     watch: {
       // update-begin author:sunjianlei date:20200219 for: 菜单搜索改为动态组件，在手机端呈现出弹出框
       device: {

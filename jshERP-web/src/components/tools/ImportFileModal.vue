@@ -13,22 +13,23 @@
       @cancel="handleCancel"
       style="top:20%;height: 55%;">
       <template slot="footer">
-        <a-button key="back" @click="handleCancel">取消</a-button>
+        <a-button key="back" @click="handleCancel">cancel</a-button>
       </template>
       <a-spin :spinning="confirmLoading">
         <a-row class="form-row" :gutter="24">
           <a-col :md="24" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="第一步：">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="First Step：">
               <a target="_blank" :href="templateUrl"><b>{{templateName}}</b></a>
-              <p>提示：模板中的第一行请勿删除</p>
+              <p>Reminder：</p>
+              <p>Please dont delete the first row of the template!</p>
             </a-form-item>
           </a-col>
         </a-row>
         <a-row class="form-row" :gutter="24">
           <a-col :md="24" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="第二步：">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="Second Step：">
               <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
-                <a-button type="primary" icon="import">导入</a-button>
+                <a-button type="primary" icon="import">Import</a-button>
               </a-upload>
             </a-form-item>
           </a-col>

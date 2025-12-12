@@ -26,6 +26,7 @@
         </div>
         <div class="filter-actions">
           <a-button type="primary" icon="search" @click="loadData">Search</a-button>
+          <a-button icon="redo" @click="resetFilters">Reset</a-button>
         </div>
       </div>
     </a-card>
@@ -34,13 +35,33 @@
     <a-card class="table-card" :bordered="false">
       <div class="actions">
         <a-button type="primary" icon="plus" @click="openModal(null)">Add Agent</a-button>
+        <a-button 
+          type="danger" 
+          icon="delete" 
+          :disabled="selectedRowKeys.length === 0"
+          @click="batchDelete"
+        >
+          Delete {{ selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : '' }}
+        </a-button>
+        <a-button icon="import" @click="handleImport">
+          Import
+        </a-button>
+        <a-button icon="download" @click="handleExport">
+          Export
+        </a-button>
       </div>
 
       <a-table
         :columns="columns"
         :data-source="list"
         :loading="loading"
-        :pagination="pagination"
+        :pagination="{
+          ...pagination,
+          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100']
+        }"
+        :row-selection="rowSelection"
         rowKey="id"
         @change="handleTableChange"
       >
@@ -81,6 +102,7 @@ export default {
     return {
       loading: false,
       list: [],
+      selectedRowKeys: [],
 
       filters: {
         name: "",
@@ -115,6 +137,17 @@ export default {
         }
       ]
     };
+  },
+
+  computed: {
+    rowSelection() {
+      return {
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: (selectedRowKeys) => {
+          this.selectedRowKeys = selectedRowKeys;
+        }
+      };
+    }
   },
 
   mounted() {
@@ -184,6 +217,93 @@ export default {
           this.loadData();
         }
       });
+    },
+
+    resetFilters() {
+      this.filters = {
+        name: "",
+        category: "",
+        phone: "",
+        address: "",
+        companyId: this.$route.query.companyId || ""
+      };
+      this.pagination.current = 1;
+      this.loadData();
+    },
+
+    async batchDelete() {
+      if (this.selectedRowKeys.length === 0) {
+        this.$message.warning("Please select at least one agent to delete");
+        return;
+      }
+
+      this.$confirm({
+        title: `Are you sure you want to delete ${this.selectedRowKeys.length} agent(s)?`,
+        content: "This action cannot be undone.",
+        okText: "Delete",
+        okType: "danger",
+        cancelText: "Cancel",
+        onOk: async () => {
+          try {
+            const res = await request({
+              url: "/lcagent/delete",
+              method: "DELETE",
+              params: { ids: this.selectedRowKeys.join(",") }
+            });
+
+            if (res && res.code === 200) {
+              this.$message.success(`Successfully deleted ${this.selectedRowKeys.length} agent(s)`);
+              this.selectedRowKeys = [];
+              this.loadData();
+            } else {
+              this.$message.error(res.data.message || "Failed to delete agents");
+            }
+          } catch (error) {
+            console.error("Batch delete failed:", error);
+            this.$message.error("Failed to delete agents");
+          }
+        }
+      });
+    },
+
+    handleImport() {
+      this.$message.info("Import functionality - Coming soon");
+      // TODO: Implement import functionality
+      // You can use a file upload modal here
+    },
+
+    handleExport() {
+      try {
+        // Simple CSV export
+        const headers = ["Name", "Title", "Phone", "Email", "Office Phone", "Category", "Company"];
+        const csvContent = [
+          headers.join(","),
+          ...this.list.map(item => [
+            item.name || "",
+            item.title || "",
+            item.phone || "",
+            item.email || "",
+            item.officeNum || "",
+            item.category || "",
+            item.companyId || ""
+          ].map(field => `"${field}"`).join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `agents_${new Date().getTime()}.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        this.$message.success("Agents exported successfully");
+      } catch (error) {
+        console.error("Export failed:", error);
+        this.$message.error("Failed to export agents");
+      }
     }
   }
 };
@@ -219,7 +339,14 @@ export default {
   margin-right: 16px;
 }
 
+.actions {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
 .filter-actions {
-  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
 }
 </style>

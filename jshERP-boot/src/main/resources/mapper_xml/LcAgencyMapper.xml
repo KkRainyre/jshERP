@@ -62,6 +62,41 @@
         WHERE id = #{id}
     </select>
 
+    <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.LcAgencyExample"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM lc_agency
+        <where>
+            <!-- example criteria -->
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <if test="criterion.noValue">
+                                AND ${criterion.condition}
+                            </if>
+                            <if test="criterion.singleValue">
+                                AND ${criterion.condition} #{criterion.value}
+                            </if>
+                            <if test="criterion.betweenValue">
+                                AND ${criterion.condition} #{criterion.value} AND #{criterion.secondValue}
+                            </if>
+                            <if test="criterion.listValue">
+                                AND ${criterion.condition}
+                                <foreach item="item" index="index"
+                                         collection="criterion.value"
+                                         open="(" separator="," close=")">
+                                    #{item}
+                                </foreach>
+                            </if>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </select>
+
     <!-- ================= DELETE ================= -->
     <delete id="deleteByPrimaryKey">
         DELETE FROM lc_agency WHERE id = #{id}

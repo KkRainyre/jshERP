@@ -5,17 +5,16 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.LcAgency;
 import com.jsh.erp.datasource.entities.Lcagent;
+import com.jsh.erp.exception.BusinessRunTimeException;
 import com.jsh.erp.service.AgencyService;
-import com.jsh.erp.utils.Constants;
-import com.jsh.erp.utils.StringUtil;
-import com.jsh.erp.utils.ErpInfo;
+import com.jsh.erp.utils.*;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.jsh.erp.utils.ImageUtil;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +142,38 @@ public class AgencyController extends BaseController {
 
         return returnJson(map, ErpInfo.OK.name, ErpInfo.OK.code);
     }
+
+
+    /**
+     * Import agencies from Excel
+     * @param file
+     * @param request
+     * @param response
+     * @return
+     */
+    @PostMapping(value = "/importAgency")
+    @ApiOperation(value = "import agencies")
+    public BaseResponseInfo importAgency(MultipartFile file,
+                                         HttpServletRequest request, HttpServletResponse response) throws Exception{
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            lcAgencyService.checkFileExt(file);
+            lcAgencyService.importAgency(file, request);
+            res.code = 200;
+            res.data = "Import successful";
+        } catch(BusinessRunTimeException e) {
+            res.code = e.getCode();
+            res.data = e.getData().get("message");
+        } catch(Exception e){
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "Import failed";
+        }
+        return res;
+    }
+
+
+
 
 
 }

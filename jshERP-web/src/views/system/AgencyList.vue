@@ -1,135 +1,70 @@
 <template>
-  <a-row :gutter="24">
-    <a-col :md="24">
-      <a-card :style="cardStyle" :bordered="false">
-        <!-- Search Area -->
-        <div class="table-page-search-wrapper">
-          <a-form layout="inline" @keyup.enter.native="searchQuery">
-            <a-row :gutter="24">
-              <a-col :md="6" :sm="24">
-                <a-form-item label="Agency Name" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input
-                    v-model="queryParam.name"
-                    placeholder="Please enter agency name"
-                    allowClear
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :md="6" :sm="24">
-                <a-form-item label="Tier" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input
-                    v-model="queryParam.tier"
-                    placeholder="Please enter tier"
-                    allowClear
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :md="6" :sm="24">
-                <a-form-item label="Phone" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input
-                    v-model="queryParam.phone"
-                    placeholder="Please enter contact number"
-                    allowClear
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :md="6" :sm="24">
-                <span
-                  style="float: left; overflow: hidden;"
-                  class="table-page-search-submitButtons"
-                >
-                  <a-button type="primary" @click="searchQuery">Search</a-button>
-                  <a-button style="margin-left: 8px" @click="searchReset">Reset</a-button>
-                  <a @click="handleToggleSearch" style="margin-left: 8px">
-                    {{ toggleSearchStatus ? 'Close' : 'Expand' }}
-                    <a-icon :type="toggleSearchStatus ? 'up' : 'down'" />
-                  </a>
-                </span>
-              </a-col>
-            </a-row>
-
-            <template v-if="toggleSearchStatus">
-              <a-row :gutter="24">
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="City" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input
-                      v-model="queryParam.city"
-                      placeholder="Please enter city"
-                      allowClear
-                    />
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="State" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input
-                      v-model="queryParam.state"
-                      placeholder="Please enter state"
-                      allowClear
-                    />
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="Postal Code" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input
-                      v-model="queryParam.postalCode"
-                      placeholder="Please enter postal code"
-                      allowClear
-                    />
-                  </a-form-item>
-                </a-col>
-              </a-row>
-            </template>
-          </a-form>
+  <div class="agency-page">
+    <!-- FILTERS -->
+    <a-card class="filter-card" :bordered="false">
+      <div class="filter-container">
+        <div class="filter-item">
+          <a-input v-model="queryParam.name" placeholder="Search by Agency Name" allowClear>
+            <a-icon slot="prefix" type="bank" />
+          </a-input>
         </div>
-
-        <!-- Operator Area -->
-        <div class="table-operator" style="margin-top: 5px">
-          <a-button
-            v-if="btnEnableList.indexOf(1) > -1"
-            @click="handleAdd"
-            type="primary"
-            icon="plus"
-          >
-            Add
-          </a-button>
-          <a-button
-            v-if="btnEnableList.indexOf(1) > -1"
-            @click="batchDel"
-            icon="delete"
-          >
-            Delete
-          </a-button>
-          <a-button
-            v-if="btnEnableList.indexOf(1) > -1"
-            @click="batchSetStatus(true)"
-            icon="check-square"
-          >
-            Enable
-          </a-button>
-          <a-button
-            v-if="btnEnableList.indexOf(1) > -1"
-            @click="batchSetStatus(false)"
-            icon="close-square"
-          >
-            Ban
-          </a-button>
-          <a-button
-            v-if="btnEnableList.indexOf(1) > -1"
-            @click="handleImportXls()"
-            icon="import"
-          >
-            Import
-          </a-button>
-          <a-button
-            v-if="btnEnableList.indexOf(3) > -1"
-            @click="handleExportXls('Agency List')"
-            icon="download"
-          >
-            Export
-          </a-button>
+        <div class="filter-item">
+          <a-input v-model="queryParam.tier" placeholder="Tier" allowClear>
+            <a-icon slot="prefix" type="star" />
+          </a-input>
         </div>
+        <div class="filter-item">
+          <a-input v-model="queryParam.phone" placeholder="Phone" allowClear>
+            <a-icon slot="prefix" type="phone" />
+          </a-input>
+        </div>
+        <div class="filter-item">
+          <a-input v-model="queryParam.city" placeholder="City" allowClear>
+            <a-icon slot="prefix" type="environment" />
+          </a-input>
+        </div>
+        <div class="filter-actions">
+          <a-button type="primary" icon="search" @click="searchQuery">Search</a-button>
+          <a-button icon="redo" @click="searchReset">Reset</a-button>
+        </div>
+      </div>
+    </a-card>
 
-        <!-- Table Area -->
+    <!-- TABLE -->
+    <a-card class="table-card" :bordered="false">
+      <div class="actions">
+        <a-button
+          v-if="btnEnableList.indexOf(1) > -1"
+          @click="handleAdd"
+          type="primary"
+          icon="plus"
+        >
+          Add Agency
+        </a-button>
+        <a-button
+          v-if="btnEnableList.indexOf(1) > -1"
+          @click="batchDel"
+          type="danger"
+          icon="delete"
+          :disabled="selectedRowKeys.length === 0"
+        >
+          Delete {{ selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : '' }}
+        </a-button>
+        <a-button
+          @click="handleImportXls()"
+          icon="import"
+        >
+          Import
+        </a-button>
+        <a-button
+          @click="handleExportXls('Agency List')"
+          icon="download"
+        >
+          Export
+        </a-button>
+      </div>
+
+      <!-- Table Area -->
         <div class="table-wrapper">
           <a-table
             ref="table"
@@ -205,8 +140,7 @@
         <agency-modal ref="modalForm" @ok="modalFormOk"></agency-modal>
         <import-file-modal ref="modalImportForm" @ok="modalFormOk"></import-file-modal>
       </a-card>
-    </a-col>
-  </a-row>
+  </div>
 </template>
 
 <script>
@@ -302,7 +236,7 @@ export default {
         list: '/agency/list',
         delete: '/agency/delete',
         deleteBatch: '/agency/deleteBatch',
-        importExcelUrl: '/agency/importMember',
+        importExcelUrl: '/agency/importAgency',
         exportXlsUrl: '/agency/exportExcel',
         batchSetStatusUrl: '/agency/batchSetStatus',
         batchSetAdvanceInUrl: '/agency/batchSetAdvanceIn'
@@ -340,49 +274,23 @@ export default {
     /** Import */
     handleImportXls () {
       const importExcelUrl = this.url.importExcelUrl
-      const templateUrl = '/doc/member_template.xls'
-      const templateName = '会员Excel模板[下载]'
+      const templateUrl = '/doc/agency_template.xls'
+      const templateName = 'Agency Excel Template[Download]'
       this.$refs.modalImportForm.initModal(importExcelUrl, templateUrl, templateName)
-      this.$refs.modalImportForm.title = '会员导入'
+      this.$refs.modalImportForm.title = 'Agency Import'
     },
 
     /** Edit record */
     handleEdit (record) {
       this.$refs.modalForm.edit(record)
-      this.$refs.modalForm.title = '编辑'
+      this.$refs.modalForm.title = 'Edit'
       this.$refs.modalForm.disableSubmit = false
       if (this.btnEnableList.indexOf(1) === -1) {
         this.$refs.modalForm.isReadOnly = true
       }
     },
 
-    /** Batch adjust prepayment (if you even use it) */
-    batchSetAdvanceIn () {
-      if (this.selectedRowKeys.length <= 0) {
-        this.$message.warning('请选择一条记录！')
-        return
-      }
-      const ids = this.selectedRowKeys.join(',')
-      const that = this
-      this.$confirm({
-        title: '确认操作',
-        content: '是否操作选中数据?',
-        onOk () {
-          that.loading = true
-          postAction(that.url.batchSetAdvanceInUrl, { ids }).then(res => {
-            if (res.code === 200) {
-              that.$message.info('修正预付款成功！')
-              that.loadData()
-              that.onClearSelected()
-            } else {
-              that.$message.warning(res.data.message)
-            }
-          }).finally(() => {
-            that.loading = false
-          })
-        }
-      })
-    },
+
 
     /** Navigate to detail page – ONLY pass ID, not huge base64 blob */
     goToAgency (record) {
@@ -402,6 +310,44 @@ export default {
 
 <style scoped>
 @import '~@assets/less/common.less';
+
+/* Modern filter and table styles */
+.agency-page {
+  padding: 16px;
+  background: #f0f2f5;
+}
+
+.filter-card {
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.filter-container {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.table-card {
+  border-radius: 4px;
+}
+
+.actions {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
 
 .table-wrapper {
   position: relative;
@@ -426,7 +372,7 @@ export default {
 }
 
 /* subtle lift on hover */
-.logo-cell:hover .logo-thumb {
+.logo-thumb:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

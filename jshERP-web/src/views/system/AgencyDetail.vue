@@ -391,7 +391,7 @@ export default {
 
     handleCallPhone() {
       // Debug message
-      this.$message.info('Debug: Call button clicked');
+      // this.$message.info('Debug: Call button clicked');
       
       if (this.agency.phone) {
         // Copy to clipboard first so user has it if call fails
