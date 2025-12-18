@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsh.erp.datasource.mappers.LcProjectMapper">
+
+    <!-- ================= ResultMap ================= -->
+    <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.LcProject">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="agency" property="agency"/>
+        <result column="status" property="status"/>
+        <result column="location" property="location"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="budget" property="budget"/>
+        <result column="manager" property="manager"/>
+        <result column="contact_person" property="contactPerson"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="remarks" property="remarks"/>
+        <result column="description" property="description"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="delete_flag" property="deleteFlag"/>
+        <result column="EXT1" property="ext1"/>
+        <result column="EXT2" property="ext2"/>
+        <result column="EXT3" property="ext3"/>
+        <result column="EXT4" property="ext4"/>
+        <result column="EXT5" property="ext5"/>
+        <result column="make_time" property="makeTime"/>
+        <result column="modify_time" property="modifyTime"/>
+    </resultMap>
+
+    <!-- ================= Column List ================= -->
+    <sql id="Base_Column_List">
+        id, name, agency, status, location,
+        start_date, end_date, budget, manager,
+        contact_person, contact_phone, remarks, description,
+        tenant_id, delete_flag,
+        EXT1, EXT2, EXT3, EXT4, EXT5,
+        make_time, modify_time
+    </sql>
+
+    <!-- ================= CRUD ================= -->
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM lc_project
+        WHERE id = #{id}
+    </select>
+
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM lc_project WHERE id = #{id}
+    </delete>
+
+    <!-- ================= Insert ================= -->
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO lc_project (
+            name, agency, status, location,
+            start_date, end_date, budget, manager,
+            contact_person, contact_phone, remarks, description,
+            tenant_id, delete_flag,
+            EXT1, EXT2, EXT3, EXT4, EXT5,
+            make_time, modify_time
+        ) VALUES (
+                     #{name}, #{agency}, #{status}, #{location},
+                     #{startDate}, #{endDate}, #{budget}, #{manager},
+                     #{contactPerson}, #{contactPhone}, #{remarks}, #{description},
+                     #{tenantId}, #{deleteFlag},
+                     #{ext1}, #{ext2}, #{ext3}, #{ext4}, #{ext5},
+                     #{makeTime}, #{modifyTime}
+                 )
+    </insert>
+
+    <insert id="insertSelective" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO lc_project
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="agency != null">agency,</if>
+            <if test="status != null">status,</if>
+            <if test="location != null">location,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="budget != null">budget,</if>
+            <if test="manager != null">manager,</if>
+            <if test="contactPerson != null">contact_person,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="remarks != null">remarks,</if>
+            <if test="description != null">description,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="ext1 != null">EXT1,</if>
+            <if test="ext2 != null">EXT2,</if>
+            <if test="ext3 != null">EXT3,</if>
+            <if test="ext4 != null">EXT4,</if>
+            <if test="ext5 != null">EXT5,</if>
+            <if test="makeTime != null">make_time,</if>
+            <if test="modifyTime != null">modify_time,</if>
+        </trim>
+
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="agency != null">#{agency},</if>
+            <if test="status != null">#{status},</if>
+            <if test="location != null">#{location},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="budget != null">#{budget},</if>
+            <if test="manager != null">#{manager},</if>
+            <if test="contactPerson != null">#{contactPerson},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="remarks != null">#{remarks},</if>
+            <if test="description != null">#{description},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="ext1 != null">#{ext1},</if>
+            <if test="ext2 != null">#{ext2},</if>
+            <if test="ext3 != null">#{ext3},</if>
+            <if test="ext4 != null">#{ext4},</if>
+            <if test="ext5 != null">#{ext5},</if>
+            <if test="makeTime != null">#{makeTime},</if>
+            <if test="modifyTime != null">#{modifyTime},</if>
+        </trim>
+    </insert>
+
+    <!-- ================= Update ================= -->
+
+    <update id="updateByPrimaryKeySelective">
+        UPDATE lc_project
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="agency != null">agency = #{agency},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="budget != null">budget = #{budget},</if>
+            <if test="manager != null">manager = #{manager},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="tenantId != null">tenant_id = #{tenantId},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="ext1 != null">EXT1 = #{ext1},</if>
+            <if test="ext2 != null">EXT2 = #{ext2},</if>
+            <if test="ext3 != null">EXT3 = #{ext3},</if>
+            <if test="ext4 != null">EXT4 = #{ext4},</if>
+            <if test="ext5 != null">EXT5 = #{ext5},</if>
+            <if test="makeTime != null">make_time = #{makeTime},</if>
+            <if test="modifyTime != null">modify_time = #{modifyTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ================= Query ================= -->
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM lc_project
+        <where>
+            delete_flag = 0
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="agency != null and agency != ''">
+                AND agency LIKE CONCAT('%', #{agency}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="location != null and location != ''">
+                AND location LIKE CONCAT('%', #{location}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+        <if test="offset != null and pageSize != null">
+            LIMIT #{offset}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM lc_project
+        <where>
+            delete_flag = 0
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="agency != null and agency != ''">
+                AND agency LIKE CONCAT('%', #{agency}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="location != null and location != ''">
+                AND location LIKE CONCAT('%', #{location}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
