@@ -9,7 +9,7 @@
     @cancel="cancel"
     :maskClosable="false"
     :mask="false"
-    okText="确认"
+    okText="Confirm"
     cancelText="取消">
     <a-tabs>
       <a-tab-pane tab="方向性图标" key="1">

@@ -14,18 +14,20 @@ import java.util.List;
  */
 public interface UserBusinessMapperEx {
 
-    int batchDeleteUserBusinessByIds(@Param("updateTime") Date updateTime, @Param("updater") Long updater, @Param("ids") String ids[]);
+        int batchDeleteUserBusinessByIds(@Param("updateTime") Date updateTime, @Param("updater") Long updater,
+                        @Param("ids") String ids[]);
 
-    List<UserBusiness> getBasicDataByKeyIdAndType(
-            @Param("keyId") String keyId,
-            @Param("type") String type);
+        List<UserBusiness> getBasicDataByKeyIdAndType(
+                        @Param("keyId") String keyId,
+                        @Param("type") String type);
 
-    void updateValueByTypeAndKeyId(@Param("type") String type, @Param("keyId") String keyId, @Param("ubValue") String ubValue);
+        void updateValueByTypeAndKeyId(@Param("type") String type, @Param("keyId") String keyId,
+                        @Param("ubValue") String ubValue);
 
-    List<Long> getUBKeyIdByTypeAndOneValue(
-            @Param("type") String type,
-            @Param("oneValue") String oneValue);
+        List<Long> getUBKeyIdByTypeAndOneValue(
+                        @Param("type") String type,
+                        @Param("oneValue") String oneValue);
 
-    List<UserBusiness> getOldListByType(
-            @Param("type") String type);
+        List<UserBusiness> getOldListByType(
+                        @Param("type") String type);
 }

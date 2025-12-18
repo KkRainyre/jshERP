@@ -52,10 +52,10 @@ public class AgencyController extends BaseController {
     public TableDataInfo list(
             @RequestParam(value = Constants.SEARCH, required = false) String search) throws Exception {
 
-        String name  = StringUtil.getInfo(search, "name");
-        String tier  = StringUtil.getInfo(search, "tier");
+        String name = StringUtil.getInfo(search, "name");
+        String tier = StringUtil.getInfo(search, "tier");
         String phone = StringUtil.getInfo(search, "phone");
-        String city  = StringUtil.getInfo(search, "city");
+        String city = StringUtil.getInfo(search, "city");
         String state = StringUtil.getInfo(search, "state");
         String postal = StringUtil.getInfo(search, "postal");
 
@@ -64,7 +64,6 @@ public class AgencyController extends BaseController {
         List<LcAgency> list = lcAgencyService.select(name, tier, phone, city, state, postal);
         return getDataTable(list);
     }
-
 
     // ---------------------------------------------
     // ADD AGENCY
@@ -96,9 +95,16 @@ public class AgencyController extends BaseController {
         return returnStr(map, result);
     }
 
+    @DeleteMapping("/deleteBatch")
+    public String deleteBatch(@RequestParam("ids") String ids) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        int result = lcAgencyService.batchDeleteAgency(ids);
+        return returnStr(map, result);
+    }
+
     @PostMapping("/uploadLogo")
     public String uploadLogo(@RequestParam("id") Long id,
-                             @RequestParam("file") MultipartFile file) throws Exception {
+            @RequestParam("file") MultipartFile file) throws Exception {
 
         Map<String, Object> map = new HashMap<>();
 
@@ -123,11 +129,10 @@ public class AgencyController extends BaseController {
         }
     }
 
-
     @GetMapping("/agent")
     public String getAgentsByCompany(@RequestParam("id") Long companyId,
-                                     @RequestParam(value = "pageNo", required = false, defaultValue = "1") Integer pageNo,
-                                     @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
+            @RequestParam(value = "pageNo", required = false, defaultValue = "1") Integer pageNo,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<>();
 
@@ -143,9 +148,9 @@ public class AgencyController extends BaseController {
         return returnJson(map, ErpInfo.OK.name, ErpInfo.OK.code);
     }
 
-
     /**
      * Import agencies from Excel
+     * 
      * @param file
      * @param request
      * @param response
@@ -154,26 +159,22 @@ public class AgencyController extends BaseController {
     @PostMapping(value = "/importAgency")
     @ApiOperation(value = "import agencies")
     public BaseResponseInfo importAgency(MultipartFile file,
-                                         HttpServletRequest request, HttpServletResponse response) throws Exception{
+            HttpServletRequest request, HttpServletResponse response) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             lcAgencyService.checkFileExt(file);
             lcAgencyService.importAgency(file, request);
             res.code = 200;
             res.data = "Import successful";
-        } catch(BusinessRunTimeException e) {
+        } catch (BusinessRunTimeException e) {
             res.code = e.getCode();
             res.data = e.getData().get("message");
-        } catch(Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;
             res.data = "Import failed";
         }
         return res;
     }
-
-
-
-
 
 }

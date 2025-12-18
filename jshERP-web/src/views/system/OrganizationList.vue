@@ -243,8 +243,10 @@ export default {
         }
         var that = this
         this.$confirm({
-          title: '确认删除',
-          content: '确定要删除所选中的 ' + this.checkedKeys.length + ' 条数据?',
+          title: 'Confirm Delete',
+          content: 'Are you sure you want to delete the selected ' + this.checkedKeys.length + ' items?',
+          okText: 'Confirm',
+          cancelText: 'Cancel',
           onOk: function () {
             deleteAction(that.url.deleteBatch, {ids: ids}).then((res) => {
               if (res.code == 200) {

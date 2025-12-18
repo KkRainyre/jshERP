@@ -66,10 +66,11 @@ public class AgencyService {
     // ---------------------------------------------------------------------
     // LIST AGENCIES with filters
     // ---------------------------------------------------------------------
-    public List<LcAgency> select(String name, String tier, String phone, String city,String state, String postal) throws Exception {
+    public List<LcAgency> select(String name, String tier, String phone, String city, String state, String postal)
+            throws Exception {
         try {
             PageUtils.startPage();
-            return lcAgencyMapperEx.selectByCondition(name,tier,phone,city, state,postal);
+            return lcAgencyMapperEx.selectByCondition(name, tier, phone, city, state, postal);
         } catch (Exception e) {
             JshException.readFail(logger, e);
             return null;
@@ -124,6 +125,20 @@ public class AgencyService {
         return result;
     }
 
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public int batchDeleteAgency(String ids) throws Exception {
+        List<Long> idList = StringUtil.strToLongList(ids);
+        int result = 0;
+        try {
+            for (Long id : idList) {
+                lcAgencyMapper.deleteByPrimaryKey(id);
+                result++;
+            }
+        } catch (Exception e) {
+            JshException.writeFail(logger, e);
+        }
+        return result;
+    }
 
     public List<Lcagent> getAgentsByCompany(Long companyId, Integer pageNo, Integer pageSize) {
         int offset = (pageNo - 1) * pageSize;
@@ -134,12 +149,9 @@ public class AgencyService {
         return lcagencyMapper.countAgentsByCompany(companyId);
     }
 
-
     public int updateLogo(Long id, byte[] fullLogo, byte[] thumb) {
         return lcAgencyMapper.updateLogo(id, fullLogo, thumb);
     }
-
-
 
     /**
      * Check file extension
@@ -156,36 +168,40 @@ public class AgencyService {
 
     /**
      * Import agencies from Excel file
-     * Expected columns: name*, email*, phone*, remarks, address, bill_address, city, state, postal, enrollment, website, tier(A,B,C,D), shipping_acc, EIN, country
+     * Expected columns: name*, email*, phone*, remarks, address, bill_address,
+     * city, state, postal, enrollment, website, tier(A,B,C,D), shipping_acc, EIN,
+     * country
      */
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void importAgency(MultipartFile file, HttpServletRequest request) throws Exception{
+    public void importAgency(MultipartFile file, HttpServletRequest request) throws Exception {
         User userInfo = userService.getCurrentUser();
         Workbook workbook = Workbook.getWorkbook(file.getInputStream());
         Sheet src = workbook.getSheet(0);
-        
-        // Expected columns: name*, email*, phone*, remarks, address, bill_address, city, state, postal, enrollment, website, tier(A,B,C,D), shipping_acc, EIN, country
+
+        // Expected columns: name*, email*, phone*, remarks, address, bill_address,
+        // city, state, postal, enrollment, website, tier(A,B,C,D), shipping_acc, EIN,
+        // country
         List<LcAgency> agencyList = new ArrayList<>();
-        for (int i = 1; i < src.getRows(); i++) { // Start from row 1 (skip header)
+        for (int i = 2; i < src.getRows(); i++) { // Start from row 2 (skip warning and header)
             String name = ExcelUtils.getContent(src, i, 0);
-            
-            if(StringUtil.isNotEmpty(name)) {
+
+            if (StringUtil.isNotEmpty(name)) {
                 LcAgency agency = new LcAgency();
-                agency.setName(name);                                    // Column 0: name*
-                agency.setEmail(ExcelUtils.getContent(src, i, 1));       // Column 1: email*
-                agency.setPhone(ExcelUtils.getContent(src, i, 2));       // Column 2: phone*
-                agency.setRemarks(ExcelUtils.getContent(src, i, 3));     // Column 3: remarks
-                agency.setAddress(ExcelUtils.getContent(src, i, 4));     // Column 4: address
+                agency.setName(name); // Column 0: name*
+                agency.setEmail(ExcelUtils.getContent(src, i, 1)); // Column 1: email*
+                agency.setPhone(ExcelUtils.getContent(src, i, 2)); // Column 2: phone*
+                agency.setRemarks(ExcelUtils.getContent(src, i, 3)); // Column 3: remarks
+                agency.setAddress(ExcelUtils.getContent(src, i, 4)); // Column 4: address
                 agency.setBillAddress(ExcelUtils.getContent(src, i, 5)); // Column 5: bill_address
-                agency.setCity(ExcelUtils.getContent(src, i, 6));        // Column 6: city
-                agency.setState(ExcelUtils.getContent(src, i, 7));       // Column 7: state
-                agency.setPostal(ExcelUtils.getContent(src, i, 8));      // Column 8: postal
-                agency.setEnrollment(ExcelUtils.getContent(src, i, 9));  // Column 9: enrollment
-                agency.setWebsite(ExcelUtils.getContent(src, i, 10));    // Column 10: website
-                agency.setTier(ExcelUtils.getContent(src, i, 11));       // Column 11: tier(A,B,C,D)
+                agency.setCity(ExcelUtils.getContent(src, i, 6)); // Column 6: city
+                agency.setState(ExcelUtils.getContent(src, i, 7)); // Column 7: state
+                agency.setPostal(ExcelUtils.getContent(src, i, 8)); // Column 8: postal
+                agency.setEnrollment(ExcelUtils.getContent(src, i, 9)); // Column 9: enrollment
+                agency.setWebsite(ExcelUtils.getContent(src, i, 10)); // Column 10: website
+                agency.setTier(ExcelUtils.getContent(src, i, 11)); // Column 11: tier(A,B,C,D)
                 agency.setShippingAcc(ExcelUtils.getContent(src, i, 12));// Column 12: shipping_acc
-                agency.setEIN(ExcelUtils.getContent(src, i, 13));        // Column 13: EIN
-                agency.setCountry(ExcelUtils.getContent(src, i, 14));    // Column 14: country
+                agency.setEIN(ExcelUtils.getContent(src, i, 13)); // Column 13: EIN
+                agency.setCountry(ExcelUtils.getContent(src, i, 14)); // Column 14: country
                 agency.setMakeTime(new Date());
                 agency.setModifyTime(new Date());
                 agencyList.add(agency);
@@ -197,25 +213,15 @@ public class AgencyService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public BaseResponseInfo importExcel(List<LcAgency> agencyList, HttpServletRequest request) throws Exception {
         logService.insertLog("Agency",
-                new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_IMPORT).append(agencyList.size()).append(BusinessConstants.LOG_DATA_UNIT).toString(),
+                new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_IMPORT).append(agencyList.size())
+                        .append(BusinessConstants.LOG_DATA_UNIT).toString(),
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
         BaseResponseInfo info = new BaseResponseInfo();
         Map<String, Object> data = new HashMap<>();
         try {
-            for(LcAgency agency: agencyList) {
-                LcAgencyExample example = new LcAgencyExample();
-//                example.createCriteria().andNameEqualTo(agency.getName());
-                List<LcAgency> list = lcAgencyMapper.selectByExample(example);
-                
-                if(list.size() <= 0) {
-                    // Insert new agency
-                    lcAgencyMapper.insertSelective(agency);
-                } else {
-                    // Update existing agency
-                    Long id = list.get(0).getId();
-                    agency.setId(id);
-                    lcAgencyMapper.updateByPrimaryKeySelective(agency);
-                }
+            for (LcAgency agency : agencyList) {
+                // Directly insert new agencies
+                lcAgencyMapper.insertSelective(agency);
             }
             info.code = 200;
             data.put("message", "Successfully imported " + agencyList.size() + " agencies");

@@ -18,23 +18,35 @@
         <a-card :bordered="false" class="left-card hover-shadow">
           <div class="profile-header">
             <div class="avatar-wrapper">
-              <a-avatar
-                :size="84"
-                v-if="agency.logo"
-                :src="'data:image/jpeg;base64,' + agency.logo"
-              />
+              <div 
+                v-if="agency.logo" 
+                class="logo-rect-container"
+              >
+                <img
+                  :src="'data:image/jpeg;base64,' + agency.logo"
+                  class="hover-zoom-img"
+                  style="width: 100%; height: 100%; object-fit: contain"
+                />
+              </div>
 
               <a-avatar
-                :size="84"
+                :size="120"
+                shape="square"
                 v-else
-                style="background-color: #ff7a59; font-size: 32px"
+                style="background-color: #ff7a59; font-size: 48px"
               >
                 {{ agencyInitial }}
               </a-avatar>
+              
+              <!-- Large Preview on Hover -->
+              <div class="logo-large-preview" v-if="agency.logo">
+                <img :src="'data:image/jpeg;base64,' + agency.logo" style="width: 100%;" />
+              </div>
+              
               <div class="online-status"></div>
             </div>
             <div class="profile-info">
-              <h3 class="name">{{agency.name}} <br/>(Sample Company)</h3>
+              <h3 class="name">{{agency.name}} <br/></h3>
               <p class="title">{{agency.website}}</p>
               <p class="email">
                 <span @click="openEmail">{{ agency.email }}</span>
@@ -57,11 +69,11 @@
               <span>Call</span>
             </div>
             <div class="action-item">
-              <a-button shape="circle" icon="check-square" size="large" />
+              <a-button shape="circle" icon="check-square" size="large" @click="handleOpenTasks" />
               <span>Task</span>
             </div>
             <div class="action-item">
-              <a-button shape="circle" icon="calendar" size="large" />
+              <a-button shape="circle" icon="calendar" size="large" @click="handleMeeting" />
               <span>Meeting</span>
             </div>
             <div class="action-item">
@@ -103,6 +115,10 @@
               <div class="tab-content">
 
                 <div class="section-block">
+                  <div class="section-header">
+                    <h4>Agents</h4>
+                    <a-button type="primary" size="small" icon="plus" @click="handleAdd">Add Agent</a-button>
+                  </div>
                   <div class="record-table-list">
 
                     <a-table
@@ -122,7 +138,7 @@
                       <template slot="action" slot-scope="text, record">
                         <a @click="handleEdit(record)">edit</a>
                         <a-divider type="vertical" />
-                        <a-popconfirm title="Sure to delete?" @confirm="handleDelete(record.id)">
+                        <a-popconfirm title="Sure to delete?" okText="Confirm" @confirm="handleDelete(record.id)">
                           <a style="color: red;">delete</a>
                         </a-popconfirm>
                       </template>
@@ -196,7 +212,40 @@
               </div>
             </a-tab-pane>
             <a-tab-pane key="2" tab="Projects">
-              <div class="tab-content">Activities Content</div>
+              <div class="tab-content">
+                <div class="section-block">
+                  <div class="section-header">
+                     <h4>Projects</h4>
+                     <a-button type="primary" size="small" icon="plus" @click="handleAddProject">Add Project</a-button>
+                  </div>
+                  <div class="record-table-list">
+                    <a-table
+                      size="small"
+                      rowKey="id"
+                      :columns="projectColumns"
+                      :dataSource="projects"
+                      :pagination="{ pageSize: 5 }"
+                      :loading="loadingProjects"
+                      :scroll="{ x: 1000 }"
+                    >
+                      <!-- STATUS -->
+                      <template slot="status" slot-scope="text">
+                        <a-tag :color="getStatusColor(text)">{{ text }}</a-tag>
+                      </template>
+                      <!-- ACTION -->
+                      <template slot="projectAction" slot-scope="text, record">
+                        <a @click="handleEditProject(record)">edit</a>
+                         <a-divider type="vertical" />
+                        <a-popconfirm title="Sure to delete?" okText="Confirm" @confirm="handleDeleteProject(record.id)">
+                          <a style="color: red;">delete</a>
+                        </a-popconfirm>
+                      </template>
+                    </a-table>
+
+                    <lcproject-modal ref="lcprojectModal" @saved="projectModalOk" />
+                  </div>
+                </div>
+              </div>
             </a-tab-pane>
             <a-tab-pane key="3" tab="Sales Activty">
               <div class="tab-content">Revenue Content</div>
@@ -204,7 +253,7 @@
             <a-tab-pane key="4" tab="Marketing">
               <div class="tab-content">Intelligence Content</div>
             </a-tab-pane>
-            <a-tab-pane key="4" tab="Intelligence">
+            <a-tab-pane key="5" tab="Intelligence">
               <div class="tab-content">Intelligence Content</div>
             </a-tab-pane>
           </a-tabs>
@@ -276,6 +325,8 @@
       @cancel="notesVisible = false"
       :maskClosable="false"
       width="600px"
+      okText="Confirm"
+      cancelText="Cancel"
     >
       <a-textarea 
         v-model="notesContent" 
@@ -284,6 +335,61 @@
         style="resize: none; border: 1px solid #e8e8e8; background: #fafafa; padding: 12px; border-radius: 4px;"
       />
     </a-modal>
+
+    <!-- Tasks Modal -->
+    <a-modal
+      title="Tasks"
+      :visible="tasksVisible"
+      @cancel="tasksVisible = false"
+      :footer="null"
+      width="600px"
+    >
+      <div class="task-input-row" style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <a-input v-model="newTaskTitle" placeholder="Task title..." style="flex: 1;" @keyup.enter="addTask" />
+        <a-date-picker v-model="newTaskDate" placeholder="Due date" />
+        <a-button type="primary" icon="plus" @click="addTask">Add</a-button>
+      </div>
+      
+      <a-list :dataSource="taskList" itemLayout="horizontal">
+        <a-list-item slot="renderItem" slot-scope="item, index">
+          <a-checkbox slot="actions" :checked="item.completed" @change="toggleTask(item)"></a-checkbox>
+          <a slot="actions" style="color: red" @click="removeTask(item)"><a-icon type="delete" /></a>
+          
+          <a-list-item-meta :description="item.dueDate ? 'Due: ' + item.dueDate : ''">
+             <span slot="title" :style="{ textDecoration: item.completed ? 'line-through' : 'none', color: item.completed ? '#aaa' : '#333' }">
+               {{ item.title }}
+             </span>
+          </a-list-item-meta>
+        </a-list-item>
+        <div v-if="taskList.length === 0" style="text-align: center; padding: 20px; color: #999;">
+          No tasks yet.
+        </div>
+      </a-list>
+    </a-modal>
+
+    <!-- Meeting Modal -->
+    <a-modal
+      title="Start Meeting"
+      :visible="meetingVisible"
+      @cancel="meetingVisible = false"
+      :footer="null"
+      width="400px"
+    >
+      <div style="display: flex; flex-direction: column; gap: 16px; padding: 10px;">
+        <a-button block size="large" icon="video-camera" @click="launchZoom" style="height: 50px; background: #2D8CFF; color: white; border: none;">
+           Launch Zoom Meeting
+        </a-button>
+        
+        <a-button block size="large" icon="windows" @click="launchTeams" style="height: 50px; background: #6264A7; color: white; border: none;">
+           Microsoft Teams
+        </a-button>
+        
+        <a-button block size="large" icon="mobile" @click="launchFaceTime" style="height: 50px; background: #34C759; color: white; border: none;">
+           FaceTime
+        </a-button>
+      </div>
+    </a-modal>
+
   </div>
 </template>
 
@@ -292,10 +398,12 @@ import { getAction, deleteAction } from '@/api/manage'
 import { editAgency } from '@/api/api'
 import ImportFileModal from "@comp/tools/ImportFileModal.vue";
 import LcagentModal from "./modules/LcagentModal.vue";
+import LcprojectModal from "./modules/LcprojectModal.vue";
+import moment from 'moment';
 
 export default {
   name: 'agent-overview',
-  components: {ImportFileModal, LcagentModal},
+  components: {ImportFileModal, LcagentModal, LcprojectModal},
   data() {
     return {
       agencyId: null,
@@ -304,17 +412,33 @@ export default {
       activities: [],
       notesVisible: false,
       notesContent: '',
+      tasksVisible: false,
+      taskList: [],
+      newTaskTitle: '',
+      newTaskDate: null,
+      meetingVisible: false,
       currentIndex: 0,
       total: 0,
       listColumns: [
         { title: 'Avatar', dataIndex: 'logo', scopedSlots: { customRender: 'logo' }, align:"center", width: 60 },
         { title: 'Name', dataIndex: 'name', width: 150 , align:"center"},
+        { title: 'Title', dataIndex: 'title', width: 100, align:"center" },
         { title: 'Phone', dataIndex: 'phone', width: 100 , align:"center"},
+        { title: 'Office Phone', dataIndex: 'officeNum', width: 100, align:"center" },
+        { title: 'Extension', dataIndex: 'phoneExt', width: 80, align:"center" },
         { title: 'Email', dataIndex: 'email', width: 150 , align:"center"},
-        { title: 'Shipping', dataIndex: 'shipping', width: 80 , align:"center"},
-        { title: 'Currency', dataIndex: 'currency', width: 80 , align:"center"},
-        { title: 'Category', dataIndex: 'category', width: 80 , align:"center"},
-        { title: 'Remark', dataIndex: 'remark', width: 150 , align:"center"},
+        { title: 'Action', scopedSlots: { customRender: 'action' }, width: 120, align: 'center' }
+      ],
+      projects: [],
+      loadingProjects: false,
+      projectColumns: [
+        { title: 'Project Name', dataIndex: 'name', width: 150 },
+        { title: 'Agency', dataIndex: 'agency', width: 150 },
+        { title: 'Status', dataIndex: 'status', width: 100, scopedSlots: { customRender: 'status' } },
+        { title: 'Location', dataIndex: 'location', width: 120 },
+        { title: 'Start Date', dataIndex: 'startDate', width: 120, customRender: (text) => !text ? "" : (text.length > 10 ? text.substring(0, 10) : text) },
+        { title: 'End Date', dataIndex: 'endDate', width: 120, customRender: (text) => !text ? "" : (text.length > 10 ? text.substring(0, 10) : text) },
+        { title: 'Action', scopedSlots: { customRender: 'projectAction' }, width: 120, align: 'center' }
       ]
     }
   },
@@ -333,6 +457,7 @@ export default {
       const res = await getAction('/agency/info', { id: this.agencyId });
       if (res && res.code === 200 && res.data && res.data.info) {
         this.agency = res.data.info;
+        this.loadProjects();
       }
     },
     async loadActivities() {
@@ -407,23 +532,28 @@ export default {
     },
 
     handleOpenNotes() {
-      // Debug message
-      this.$message.info('Debug: Note button clicked');
-      console.log('openNotes clicked');
-      console.log('Current remarks:', this.agency.remarks);
       this.notesContent = this.agency.remarks || '';
       this.notesVisible = true;
-      console.log('notesVisible set to:', this.notesVisible);
     },
 
     async handleSaveNotes() {
-       const formData = { ...this.agency, remarks: this.notesContent };
+       let finalContent = this.notesContent;
+       const originalContent = this.agency.remarks || '';
+       
+       // If content changed, append date
+       if (finalContent !== originalContent) {
+          const dateStr = new Date().toLocaleString(); 
+          // Append new line and date
+          finalContent += `\n[Modified: ${dateStr}]`;
+       }
+
+       const formData = { ...this.agency, remarks: finalContent };
        
        try {
          const res = await editAgency(formData);
          if (res && res.code === 200) {
             this.$message.success('Notes saved');
-            this.agency.remarks = this.notesContent; // Update local state
+            this.agency.remarks = finalContent; // Update local state
             this.notesVisible = false;
          } else {
             this.$message.warning(res.data.message || 'Failed to save notes');
@@ -432,8 +562,153 @@ export default {
          console.error(e);
          this.$message.error('Error saving notes');
        }
+    },
+
+    // --- Meeting Methods ---
+    handleMeeting() {
+       this.meetingVisible = true;
+    },
+    
+    launchZoom() {
+       // Opens the Zoom web portal to start a meeting (or launch app if installed)
+       window.open('https://zoom.us/start', '_blank');
+       this.meetingVisible = false;
+    },
+    
+    launchTeams() {
+       // Deep link to create a new meeting in Teams
+       window.open('https://teams.microsoft.com/l/meeting/new', '_blank');
+       this.meetingVisible = false;
+    },
+    
+    launchFaceTime() {
+       const contact = this.agency.phone || this.agency.email;
+       if (!contact) {
+         this.$message.warning('No phone number or email available for this agency.');
+         return;
+       }
+       // FaceTime protocol
+       window.location.href = `facetime://${contact}`;
+       this.meetingVisible = false;
+    },
+
+    // --- Task Methods ---
+    handleOpenTasks() {
+      this.tasksVisible = true;
+      try {
+        if (this.agency.EXT5) {
+          this.taskList = JSON.parse(this.agency.EXT5);
+        } else {
+          this.taskList = [];
+        }
+      } catch (e) {
+        this.taskList = [];
+      }
+    },
+    
+    addTask() {
+      if (!this.newTaskTitle) return;
+      
+      const task = {
+        id: Date.now(),
+        title: this.newTaskTitle,
+        dueDate: this.newTaskDate ? this.newTaskDate.format('YYYY-MM-DD') : null,
+        completed: false
+      };
+      
+      this.taskList.unshift(task); // Add to top
+      this.newTaskTitle = '';
+      this.newTaskDate = null;
+      this.saveTasks();
+    },
+    
+    toggleTask(task) {
+      task.completed = !task.completed;
+      this.saveTasks();
+    },
+    
+    removeTask(task) {
+      this.taskList = this.taskList.filter(t => t.id !== task.id);
+      this.saveTasks();
+    },
+    
+    async saveTasks() {
+       const jsonStr = JSON.stringify(this.taskList);
+       const formData = { ...this.agency, EXT5: jsonStr };
+       
+       try {
+         const res = await editAgency(formData);
+         if (res && res.code === 200) {
+           this.agency.EXT5 = jsonStr;
+         }
+       } catch (e) {
+         console.error(e);
+       }
+    },
+
+    async loadProjects() {
+      if (!this.agency || !this.agency.name) return;
+      this.loadingProjects = true;
+      try {
+        const res = await getAction('/lcproject/select', { exactClient: this.agency.name });
+        if (res && res.data) {
+           // Filter strictly on frontend to ensure data isolation
+           const allProjects = Array.isArray(res.data) ? res.data : [];
+           this.projects = allProjects.filter(p => p.agency === this.agency.name);
+        } else {
+           this.projects = [];
+        }
+      } catch (e) {
+        console.error("Failed to load projects", e);
+        this.projects = [];
+      } finally {
+        this.loadingProjects = false;
+      }
+    },
+
+    handleAddProject() {
+      if (!this.agency.name) {
+        this.$message.warning("Agency name is missing");
+        return;
+      }
+      this.$refs.lcprojectModal.open(null, { 
+        clientDisabled: true, 
+        clientName: this.agency.name,
+        clientId: this.agency.id // Pass agency ID for EXT2
+      });
+    },
+
+    handleEditProject(record) {
+      this.$refs.lcprojectModal.open(record, { clientDisabled: true });
+    },
+
+    async handleDeleteProject(id) {
+       await deleteAction(`/lcproject/delete/${id}`);
+       this.$message.success('Deleted project');
+       this.loadProjects();
+    },
+
+    projectModalOk() {
+      this.loadProjects();
+    },
+
+    getStatusColor(status) {
+      switch (status) {
+        case 'new-lead': return '#56CCF2';
+        case 'budget': return '#F2994A';
+        case 'specify': return '#BB6BD9';
+        case 'quote': return '#6FCF97';
+        case 'follow-up': return '#F2C94C';
+        case 'po': return '#EB5757';
+        case 'active': return 'green'; // Keep for legacy
+        case 'completed': return 'blue'; // Keep for legacy
+        case 'on-hold': return 'orange'; // Keep for legacy
+        case 'cancelled': return 'red'; // Keep for legacy
+        default: return 'default';
+      }
     }
   }
+
   ,
   computed: {
     agencyInitial() {
@@ -514,6 +789,38 @@ export default {
       position: relative;
       display: inline-block;
       margin-bottom: 12px;
+
+      .logo-rect-container {
+        width: 260px;
+        height: 140px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px; /* Optional rounded corners */
+      }
+
+      /* Hover Preview */
+      .logo-large-preview {
+          visibility: hidden;
+          opacity: 0;
+          position: absolute;
+          top: 0;
+          left: 270px;
+          width: 400px;
+          background: #fff;
+          border: 1px solid #ddd;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 999;
+          padding: 8px;
+          transition: 0.2s;
+          pointer-events: none;
+      }
+
+      &:hover .logo-large-preview {
+          visibility: visible;
+          opacity: 1;
+      }
+
+
     }
 
     .name {

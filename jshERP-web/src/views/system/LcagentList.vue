@@ -87,16 +87,19 @@
 
     <!-- MODAL -->
     <LcagentModal ref="modal" @saved="loadData" />
+    <import-file-modal ref="modalImportForm" @ok="modalFormOk"></import-file-modal>
   </div>
+
 </template>
 
 <script>
 import LcagentModal from "./modules/LcagentModal.vue";
+import ImportFileModal from '@comp/tools/ImportFileModal.vue'
 import { axios as request } from "@/utils/request";
 
 export default {
   name: "LcagentList",
-  components: { LcagentModal },
+  components: { LcagentModal, ImportFileModal },
 
   data() {
     return {
@@ -120,9 +123,19 @@ export default {
 
       columns: [
         { title: "Name", dataIndex: "name" },
-        { title: "Category", dataIndex: "category" },
+        { 
+          title: "Agency", 
+          dataIndex: "companyId", 
+          customRender: (text) => this.getAgencyName(text)
+        },
+
+        { title: "Title", dataIndex: "title" },
         { title: "Phone", dataIndex: "phone" },
-        { title: "Address", dataIndex: "address" },
+
+        { title: "Office Phone", dataIndex: "officeNum" },
+        { title: "Extension", dataIndex: "phoneExt" },
+
+        { title: "Email", dataIndex: "email" },
 
         {
           title: "Logo",
@@ -135,7 +148,8 @@ export default {
           width: 120,
           scopedSlots: { customRender: "actions" }
         }
-      ]
+      ],
+      agencyList: []
     };
   },
 
@@ -165,6 +179,11 @@ export default {
       };
 
       try {
+        // Fetch agency list if not already loaded (for name lookup)
+        if (this.agencyList.length === 0) {
+           await this.loadAgencyMap();
+        }
+
         const res = await request({
           url: "/lcagent/select",
           method: "get",
@@ -195,6 +214,29 @@ export default {
       }
     },
 
+    async loadAgencyMap() {
+        try {
+            const res = await request({
+                url: '/agency/list',
+                method: 'get',
+                params: { pageSize: 1000 }
+            });
+            if (res && res.rows) {
+                this.agencyList = res.rows;
+            } else if (res && res.data && res.data.rows) {
+                this.agencyList = res.data.rows;
+            }
+        } catch(e) {
+            console.error("Failed to load agency map", e);
+        }
+    },
+
+    getAgencyName(id) {
+        if (!id) return "";
+        const agency = this.agencyList.find(a => a.id == id);
+        return agency ? agency.name : id;
+    },
+
     handleTableChange(pagination) {
       this.pagination.current = pagination.current;
       this.pagination.pageSize = pagination.pageSize;
@@ -208,6 +250,8 @@ export default {
     deleteRecord(id) {
       this.$confirm({
         title: "Are you sure you want to delete this agent?",
+        okText: "Confirm",
+        cancelText: "Cancel",
         okType: "danger",
         onOk: async () => {
           await request({
@@ -240,23 +284,23 @@ export default {
       this.$confirm({
         title: `Are you sure you want to delete ${this.selectedRowKeys.length} agent(s)?`,
         content: "This action cannot be undone.",
-        okText: "Delete",
+        okText: "Confirm",
         okType: "danger",
         cancelText: "Cancel",
         onOk: async () => {
           try {
             const res = await request({
-              url: "/lcagent/delete",
+              url: "/lcagent/deleteBatch",
               method: "DELETE",
               params: { ids: this.selectedRowKeys.join(",") }
             });
 
-            if (res && res.code === 200) {
+            if (res && (res.code === 200 || typeof res === 'number')) {
               this.$message.success(`Successfully deleted ${this.selectedRowKeys.length} agent(s)`);
               this.selectedRowKeys = [];
               this.loadData();
             } else {
-              this.$message.error(res.data.message || "Failed to delete agents");
+              this.$message.error("Failed to delete agents");
             }
           } catch (error) {
             console.error("Batch delete failed:", error);
@@ -267,9 +311,14 @@ export default {
     },
 
     handleImport() {
-      this.$message.info("Import functionality - Coming soon");
-      // TODO: Implement import functionality
-      // You can use a file upload modal here
+      const importExcelUrl = `/lcagent/importAgent`
+      const templateUrl = '' 
+      const templateName = 'Agent Excel Template'
+      this.$refs.modalImportForm.initModal(importExcelUrl, templateUrl, templateName)
+      this.$refs.modalImportForm.title = 'Agent Import'
+    },
+    modalFormOk() {
+      this.loadData();
     },
 
     handleExport() {

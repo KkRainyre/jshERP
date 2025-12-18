@@ -75,7 +75,7 @@ export const constantRouterMap = [
       {
         path: 'detail_info',
         name: 'AgencyDetail',
-        meta: { title: 'Agency Detail' , keepAlive: false},
+        meta: { title: 'Agency Detail', keepAlive: false },
         component: () => import('@views/system/AgencyDetail.vue')
       }
 
@@ -83,9 +83,26 @@ export const constantRouterMap = [
   },
 
   // ---------------------------------------
-// Lcagent Module (similar to Agency)
-// MUST be inside TabLayout
-// ---------------------------------------
+  // Project Module
+  // ---------------------------------------
+  {
+    path: '/lcproject',
+    component: TabLayout,
+    redirect: '/lcproject/index',
+    children: [
+      {
+        path: 'detail_info',
+        name: 'ProjectDetail',
+        meta: { title: 'Project Detail', keepAlive: false },
+        component: () => import('@views/system/ProjectDetail.vue')
+      }
+    ]
+  },
+
+  // ---------------------------------------
+  // Lcagent Module (similar to Agency)
+  // MUST be inside TabLayout
+  // ---------------------------------------
   {
     path: '/lcagent',
     component: TabLayout,

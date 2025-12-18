@@ -36,23 +36,23 @@ public class UserBusinessService {
     @Resource
     private UserService userService;
 
-    public UserBusiness getUserBusiness(long id)throws Exception {
-        UserBusiness result=null;
-        try{
-            result=userBusinessMapper.selectByPrimaryKey(id);
-        }catch(Exception e){
+    public UserBusiness getUserBusiness(long id) throws Exception {
+        UserBusiness result = null;
+        try {
+            result = userBusinessMapper.selectByPrimaryKey(id);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         return result;
     }
 
-    public List<UserBusiness> getUserBusiness()throws Exception {
+    public List<UserBusiness> getUserBusiness() throws Exception {
         UserBusinessExample example = new UserBusinessExample();
         example.createCriteria().andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-        List<UserBusiness> list=null;
-        try{
-            list=userBusinessMapper.selectByExample(example);
-        }catch(Exception e){
+        List<UserBusiness> list = null;
+        try {
+            list = userBusinessMapper.selectByExample(example);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         return list;
@@ -61,15 +61,15 @@ public class UserBusinessService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertUserBusiness(JSONObject obj, HttpServletRequest request) throws Exception {
         UserBusiness userBusiness = JSONObject.parseObject(obj.toJSONString(), UserBusiness.class);
-        int result=0;
-        try{
+        int result = 0;
+        try {
             String value = userBusiness.getValue();
-            String newValue = value.replaceAll(",","\\]\\[");
-            newValue = newValue.replaceAll("\\[0\\]","").replaceAll("\\[\\]","");
+            String newValue = value.replaceAll(",", "\\]\\[");
+            newValue = newValue.replaceAll("\\[0\\]", "").replaceAll("\\[\\]", "");
             userBusiness.setValue(newValue);
-            result=userBusinessMapper.insertSelective(userBusiness);
+            result = userBusinessMapper.insertSelective(userBusiness);
             logService.insertLog("关联关系", BusinessConstants.LOG_OPERATION_TYPE_ADD, request);
-        }catch(Exception e){
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
@@ -78,55 +78,56 @@ public class UserBusinessService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateUserBusiness(JSONObject obj, HttpServletRequest request) throws Exception {
         UserBusiness userBusiness = JSONObject.parseObject(obj.toJSONString(), UserBusiness.class);
-        int result=0;
-        try{
+        int result = 0;
+        try {
             String value = userBusiness.getValue();
-            String newValue = value.replaceAll(",","\\]\\[");
-            newValue = newValue.replaceAll("\\[0\\]","").replaceAll("\\[\\]","");
+            String newValue = value.replaceAll(",", "\\]\\[");
+            newValue = newValue.replaceAll("\\[0\\]", "").replaceAll("\\[\\]", "");
             userBusiness.setValue(newValue);
-            result=userBusinessMapper.updateByPrimaryKeySelective(userBusiness);
+            result = userBusinessMapper.updateByPrimaryKeySelective(userBusiness);
             logService.insertLog("关联关系", BusinessConstants.LOG_OPERATION_TYPE_EDIT, request);
-        }catch(Exception e){
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int deleteUserBusiness(Long id, HttpServletRequest request)throws Exception {
+    public int deleteUserBusiness(Long id, HttpServletRequest request) throws Exception {
         return batchDeleteUserBusinessByIds(id.toString());
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int batchDeleteUserBusiness(String ids, HttpServletRequest request)throws Exception {
+    public int batchDeleteUserBusiness(String ids, HttpServletRequest request) throws Exception {
         return batchDeleteUserBusinessByIds(ids);
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int batchDeleteUserBusinessByIds(String ids) throws Exception{
+    public int batchDeleteUserBusinessByIds(String ids) throws Exception {
         logService.insertLog("关联关系",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_DELETE).append(ids).toString(),
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
-        User userInfo=userService.getCurrentUser();
-        String [] idArray=ids.split(",");
-        int result=0;
-        try{
-            result=  userBusinessMapperEx.batchDeleteUserBusinessByIds(new Date(),userInfo==null?null:userInfo.getId(),idArray);
-        }catch(Exception e){
+        User userInfo = userService.getCurrentUser();
+        String[] idArray = ids.split(",");
+        int result = 0;
+        try {
+            result = userBusinessMapperEx.batchDeleteUserBusinessByIds(new Date(),
+                    userInfo == null ? null : userInfo.getId(), idArray);
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
     }
 
-    public int checkIsNameExist(Long id, String name)throws Exception {
+    public int checkIsNameExist(Long id, String name) throws Exception {
         return 1;
     }
 
-    public List<UserBusiness> getBasicData(String keyId, String type)throws Exception{
-        List<UserBusiness> list=null;
-        try{
-            list= userBusinessMapperEx.getBasicDataByKeyIdAndType(keyId, type);
-        }catch(Exception e){
+    public List<UserBusiness> getBasicData(String keyId, String type) throws Exception {
+        List<UserBusiness> list = null;
+        try {
+            list = userBusinessMapperEx.getBasicDataByKeyIdAndType(keyId, type);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         return list;
@@ -135,31 +136,31 @@ public class UserBusinessService {
     public String getUBValueByTypeAndKeyId(String type, String keyId) throws Exception {
         String ubValue = "";
         List<UserBusiness> ubList = getBasicData(keyId, type);
-        if(ubList!=null && ubList.size()>0) {
+        if (ubList != null && ubList.size() > 0) {
             ubValue = ubList.get(0).getValue();
         }
         return ubValue;
     }
 
-    public Long checkIsValueExist(String type, String keyId)throws Exception {
+    public Long checkIsValueExist(String type, String keyId) throws Exception {
         UserBusinessExample example = new UserBusinessExample();
         example.createCriteria().andTypeEqualTo(type).andKeyIdEqualTo(keyId)
                 .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-        List<UserBusiness> list=null;
-        try{
-            list= userBusinessMapper.selectByExample(example);
-        }catch(Exception e){
+        List<UserBusiness> list = null;
+        try {
+            list = userBusinessMapper.selectByExample(example);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         Long id = null;
-        if(list!=null&&list.size() > 0) {
+        if (list != null && list.size() > 0) {
             id = list.get(0).getId();
         }
         return id;
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int updateBtnStr(String keyId, String type, String btnStr) throws Exception{
+    public int updateBtnStr(String keyId, String type, String btnStr) throws Exception {
         logService.insertLog("关联关系",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append("角色的按钮权限").toString(),
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
@@ -167,10 +168,10 @@ public class UserBusinessService {
         userBusiness.setBtnStr(btnStr);
         UserBusinessExample example = new UserBusinessExample();
         example.createCriteria().andKeyIdEqualTo(keyId).andTypeEqualTo(type);
-        int result=0;
-        try{
-            result=  userBusinessMapper.updateByExampleSelective(userBusiness, example);
-        }catch(Exception e){
+        int result = 0;
+        try {
+            result = userBusinessMapper.updateByExampleSelective(userBusiness, example);
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
@@ -185,17 +186,17 @@ public class UserBusinessService {
         try {
             Map<String, String> keyIdMap = new HashMap<>();
             List<UserBusiness> oldUbList = userBusinessMapperEx.getOldListByType(type);
-            for(Object keyIdObj: keyIdArr) {
+            for (Object keyIdObj : keyIdArr) {
                 String keyId = keyIdObj.toString();
                 keyIdMap.put(keyId, keyId);
                 List<UserBusiness> ubList = userBusinessMapperEx.getBasicDataByKeyIdAndType(keyId, type);
-                if(ubList.size()>0) {
+                if (ubList.size() > 0) {
                     String valueStr = ubList.get(0).getValue();
                     Boolean flag = valueStr.contains("[" + oneValue + "]");
-                    if(flag) {
-                        //存在则忽略
+                    if (flag) {
+                        // 存在则忽略
                     } else {
-                        //不存在则追加并更新
+                        // 不存在则追加并更新
                         valueStr = valueStr + "[" + oneValue + "]";
                         UserBusiness userBusiness = new UserBusiness();
                         userBusiness.setId(ubList.get(0).getId());
@@ -203,7 +204,7 @@ public class UserBusinessService {
                         userBusinessMapper.updateByPrimaryKeySelective(userBusiness);
                     }
                 } else {
-                    //新增数据
+                    // 新增数据
                     UserBusiness userBusiness = new UserBusiness();
                     userBusiness.setType(type);
                     userBusiness.setKeyId(keyId);
@@ -211,21 +212,21 @@ public class UserBusinessService {
                     userBusinessMapper.insertSelective(userBusiness);
                 }
             }
-            //检查被移除的keyId
-            for(UserBusiness item: oldUbList) {
+            // 检查被移除的keyId
+            for (UserBusiness item : oldUbList) {
                 String oldValue = item.getValue();
                 String oldkeyId = item.getKeyId();
-                if(keyIdMap.get(oldkeyId) == null) {
-                    //处理被删除的keyId
+                if (keyIdMap.get(oldkeyId) == null) {
+                    // 处理被删除的keyId
                     String valueStr = "[" + oneValue + "]";
-                    if(oldValue.equals(valueStr)) {
-                        //说明value里面只有一条数据，需要进行逻辑删除
+                    if (oldValue.equals(valueStr)) {
+                        // 说明value里面只有一条数据，需要进行逻辑删除
                         UserBusiness userBusiness = new UserBusiness();
                         userBusiness.setId(item.getId());
                         userBusiness.setDeleteFlag("1");
                         userBusinessMapper.updateByPrimaryKeySelective(userBusiness);
                     } else {
-                        //多条进行替换后再更新
+                        // 多条进行替换后再更新
                         String newValue = oldValue.replace(valueStr, "");
                         UserBusiness userBusiness = new UserBusiness();
                         userBusiness.setId(item.getId());

@@ -19,7 +19,7 @@
             <a-input v-decorator="['title', {rules: [{ required: true, message: 'Please input title!' }]}]" placeholder="Job Title" />
           </a-form-item>
         </a-col>
-
+        
         <a-col :span="12">
           <a-form-item label="Phone">
             <a-input v-decorator="['phone', {rules: [{ required: true, message: 'Please input phone!' }]}]" placeholder="Mobile Phone" />
@@ -43,11 +43,6 @@
         </a-col>
 
         <a-col :span="12">
-          <a-form-item label="Category">
-            <a-input v-decorator="['category', {rules: [{ required: true, message: 'Please input category!' }]}]" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="12">
           <a-form-item label="Company">
             <a-select
               v-decorator="['companyId', {rules: [{ required: true, message: 'Please select company!' }]}]"
@@ -55,6 +50,7 @@
               showSearch
               allowClear
               :filterOption="filterOption"
+              :disabled="disabledCompany"
             >
               <a-select-option
                 v-for="item in agencyList"
@@ -69,26 +65,12 @@
         </a-col>
 
         <a-col :span="12">
-           <a-form-item label="Shipping">
-             <a-input v-decorator="['shipping', {rules: [{ required: true, message: 'Please input shipping info!' }]}]" placeholder="Shipping Info" />
-           </a-form-item>
-        </a-col>
-        <a-col :span="12">
-           <a-form-item label="Currency">
-             <a-input v-decorator="['currency', {rules: [{ required: true, message: 'Please input currency!' }]}]" />
-           </a-form-item>
-        </a-col>
-        <a-col :span="12">
            <a-form-item label="Country">
              <a-input v-decorator="['country']" placeholder="Country" />
            </a-form-item>
         </a-col>
 
-        <a-col :span="24">
-          <a-form-item label="Address">
-            <a-input v-decorator="['address', {rules: [{ required: true, message: 'Please input address!' }]}]" placeholder="Street Address" />
-          </a-form-item>
-        </a-col>
+
 
         <a-col :span="24">
           <a-form-item label="Remark">
@@ -126,7 +108,8 @@ export default {
       fileData: null,
       previewLogo: null,
       confirmLoading: false,
-      agencyList: []
+      agencyList: [],
+      disabledCompany: false
     };
   },
 

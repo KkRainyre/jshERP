@@ -85,6 +85,7 @@
               <a-divider type="vertical" />
               <a-popconfirm
                 title="Are you sure to delete?"
+                okText="Confirm"
                 @confirm="() => handleDelete(record.id)"
               >
                 <a>delete</a>
@@ -146,7 +147,7 @@
 <script>
 import AgencyModal from './modules/AgencyModal.vue'
 import ImportFileModal from '@comp/tools/ImportFileModal.vue'
-import { postAction } from '@api/manage'
+import { postAction, deleteAction } from '@api/manage'
 import { JeecgListMixin } from '@/mixins/JeecgListMixin'
 import JDate from '@comp/jeecg/JDate.vue'
 
@@ -303,6 +304,42 @@ export default {
     formatUrl (url) {
       if (!url) return ''
       return url.startsWith('http') ? url : `https://${url}`
+    },
+
+    batchDel: function () {
+      if (!this.url.deleteBatch) {
+        this.$message.error('Please set url.deleteBatch attribute!')
+        return
+      }
+      if (this.selectedRowKeys.length <= 0) {
+        this.$message.warning('Please select records to delete!')
+        return
+      }
+      var ids = ''
+      for (var a = 0; a < this.selectedRowKeys.length; a++) {
+        ids += this.selectedRowKeys[a] + ','
+      }
+      var that = this
+      this.$confirm({
+        title: 'Confirm Delete',
+        content: 'Are you sure to delete selected records?',
+        okText: 'Confirm',
+        okType: 'danger',
+        onOk: function () {
+          that.loading = true
+          deleteAction(that.url.deleteBatch, { ids: ids }).then((res) => {
+            if (res.success) {
+              that.$message.success(res.message)
+              that.loadData()
+              that.onClearSelected()
+            } else {
+              that.$message.warning(res.message)
+            }
+          }).finally(() => {
+            that.loading = false
+          })
+        }
+      })
     }
   }
 }

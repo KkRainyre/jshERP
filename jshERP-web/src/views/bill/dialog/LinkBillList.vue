@@ -16,7 +16,7 @@
       <template slot="footer">
         <a-button @click="handleCancel">关闭(ESC)</a-button>
         <a-button @click="handleBackBill" v-if="selectType === 'detail'">返回单据列表</a-button>
-        <a-button type="primary" @click="handleOk">确定</a-button>
+        <a-button type="primary" @click="handleOk">Confirm</a-button>
       </template>
       <!-- 查询区域 -->
       <div class="table-page-search-wrapper" v-if="selectType === 'list'">
