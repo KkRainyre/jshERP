@@ -84,8 +84,8 @@
           <a-col :span="6">
               <a-form-item label="Country" :labelCol="{span:8}" :wrapperCol="{span:8}">
                 <a-select v-decorator="['country', validatorRules.country]" allowClear placeholder="Country"  style="width: 120px">
-                  <a-select-option value="us">United States</a-select-option>
-                  <a-select-option value="ca">Canada</a-select-option>
+                  <a-select-option value="United States">United States</a-select-option>
+                  <a-select-option value="Canada">Canada</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
@@ -129,7 +129,7 @@
             <a-col :span="12">
 
               <a-form-item label="EIN / TAX Number" :labelCol="{span:8}" :wrapperCol="{span:16}">
-                <a-input placeholder="Tax / EIN" v-decorator.trim="['EIN']" />
+                <a-input placeholder="Tax EIN" v-decorator.trim="['EIN']" />
               </a-form-item>
             </a-col>
 
@@ -299,12 +299,6 @@
   this.model = Object.assign({}, record);
   
   this.visible = true;
-
-  // Fallback: If country column is empty, try to read from EXT1 (legacy support)
-  if (!this.model.country) {
-      if (this.model.EXT1) this.model.country = this.model.EXT1;
-      else if (this.model.ext1) this.model.country = this.model.ext1;
-  }
 
   // Check if billing address is empty and checking the box if so
   this.sameAddress = !this.model.billAddress;

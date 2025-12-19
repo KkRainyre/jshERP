@@ -149,6 +149,7 @@ import AgencyModal from './modules/AgencyModal.vue'
 import ImportFileModal from '@comp/tools/ImportFileModal.vue'
 import { postAction, deleteAction } from '@api/manage'
 import { JeecgListMixin } from '@/mixins/JeecgListMixin'
+import { filterObj } from '@/utils/util'
 import JDate from '@comp/jeecg/JDate.vue'
 
 export default {
@@ -176,6 +177,10 @@ export default {
         city: '',
         state: '',
         postalCode: ''
+      },
+      isorter: {
+        column: 'make_time',
+        order: 'desc'
       },
       urlPath: '/system/agency',
       ipagination: {
@@ -209,9 +214,10 @@ export default {
           dataIndex: 'name',
           width: 160,
           align: 'center',
+          sorter: true,
           scopedSlots: { customRender: 'agencyLink' }
         },
-        { title: 'Tier', dataIndex: 'tier', width: 80, align: 'center' },
+        { title: 'Tier', dataIndex: 'tier', width: 80, align: 'center', sorter: true },
         { title: 'Phone', dataIndex: 'phone', width: 120, align: 'center' },
         { title: 'Email', dataIndex: 'email', width: 180, align: 'center' },
         {
@@ -340,6 +346,47 @@ export default {
           })
         }
       })
+    },
+
+
+    handleTableChange(pagination, filters, sorter) {
+      //分页、排序、筛选变化时触发
+      if (Object.keys(sorter).length > 0) {
+        if (sorter.order) {
+          this.isorter.column = sorter.field
+          this.isorter.order = 'ascend' === sorter.order ? 'asc' : 'desc'
+        } else {
+          this.isorter.column = 'make_time'
+          this.isorter.order = 'desc'
+        }
+      }
+      if (pagination && pagination.current) {
+        this.ipagination = pagination;
+      }
+      this.loadData();
+    },
+
+    getQueryParams() {
+      // 获取查询条件
+      let sqp = {}
+      if (this.superQueryParams) {
+        sqp['superQueryParams'] = encodeURI(this.superQueryParams)
+        sqp['superQueryMatchType'] = this.superQueryMatchType
+      }
+      let searchObj = {}
+      searchObj.search = JSON.stringify(this.queryParam);
+      var param = Object.assign(sqp, searchObj, this.isorter, this.filters);
+      param.field = this.getQueryField();
+      param.currentPage = this.ipagination.current;
+      param.pageSize = this.ipagination.pageSize;
+      
+      // Adapt sort parameters for backend (RuoYi style)
+      if (this.isorter && this.isorter.column) {
+        param.orderByColumn = this.isorter.column;
+        param.isAsc = this.isorter.order;
+      }
+      
+      return filterObj(param);
     }
   }
 }

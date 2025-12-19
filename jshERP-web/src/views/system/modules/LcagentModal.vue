@@ -16,7 +16,18 @@
         </a-col>
         <a-col :span="12">
           <a-form-item label="Title">
-            <a-input v-decorator="['title', {rules: [{ required: true, message: 'Please input title!' }]}]" placeholder="Job Title" />
+            <a-select
+              v-decorator="['title', {rules: [{ required: true, message: 'Please select title!' }]}]"
+              placeholder="Select Title"
+            >
+              <a-select-option value="Principle">Principle</a-select-option>
+              <a-select-option value="Spec-Sales">Spec-Sales</a-select-option>
+              <a-select-option value="Sales">Sales</a-select-option>
+              <a-select-option value="Distributor">Distributor</a-select-option>
+              <a-select-option value="Quotation">Quotation</a-select-option>
+              <a-select-option value="Project Manager">Project Manager</a-select-option>
+              <a-select-option value="Marketing">Marketing</a-select-option>
+            </a-select>
           </a-form-item>
         </a-col>
         
