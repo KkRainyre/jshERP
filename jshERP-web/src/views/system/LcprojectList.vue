@@ -14,9 +14,9 @@
             <a-icon slot="prefix" type="team" />
           </a-input>
         </div>
-        <div class="filter-item">
-          <a-select v-model="filters.status" placeholder="Status" allowClear style="width: 100%">
-            <a-icon slot="suffixIcon" type="flag" />
+        <div class="filter-item status-filter-wrapper">
+          <a-icon type="flag" class="prefix-icon" />
+          <a-select v-model="filters.status" placeholder="Status" allowClear style="width: 100%" class="select-with-prefix">
             <a-select-option value="active">Active</a-select-option>
             <a-select-option value="completed">Completed</a-select-option>
             <a-select-option value="on-hold">On Hold</a-select-option>
@@ -115,7 +115,7 @@ export default {
       filters: {
         name: "",
         agency: "",
-        status: "",
+        status: undefined,
         location: ""
       },
 
@@ -232,7 +232,7 @@ export default {
     },
 
     handleDetail(record) {
-      this.$router.push({ name: 'ProjectDetail', query: { id: record.id } });
+      this.$router.push({ name: 'ProjectDetail', query: { id: record.id, from: 'projectList' } });
     },
 
     openModal(record) {
@@ -268,7 +268,7 @@ export default {
       this.filters = {
         name: "",
         agency: "",
-        status: "",
+        status: undefined,
         location: ""
       };
       this.pagination.current = 1;
@@ -437,5 +437,23 @@ export default {
 .filter-actions {
   display: flex;
   gap: 8px;
+}
+
+.status-filter-wrapper {
+  position: relative;
+}
+
+.prefix-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  color: rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.select-with-prefix /deep/ .ant-select-selection__rendered {
+  margin-left: 30px;
 }
 </style>

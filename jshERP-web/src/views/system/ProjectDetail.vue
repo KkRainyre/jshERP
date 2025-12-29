@@ -711,8 +711,12 @@ export default {
     },
 
     handleBack() {
-      // Go back to history or specific route
-      this.$router.back();
+      const { from, agencyId } = this.$route.query;
+      if (from === 'agencyDetail' && agencyId) {
+        this.$router.push({ name: 'AgencyDetail', query: { id: agencyId } });
+      } else {
+        this.$router.back();
+      }
     },
     
     handleOpenNotes() {

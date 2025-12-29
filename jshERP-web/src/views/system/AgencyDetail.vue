@@ -228,6 +228,10 @@
                       :loading="loadingProjects"
                       :scroll="{ x: 1000 }"
                     >
+                      <!-- Project Name -->
+                      <template slot="projectName" slot-scope="text, record">
+                        <a @click="handleProjectDetail(record)">{{ text }}</a>
+                      </template>
                       <!-- STATUS -->
                       <template slot="status" slot-scope="text">
                         <a-tag :color="getStatusColor(text)">{{ text }}</a-tag>
@@ -432,7 +436,7 @@ export default {
       projects: [],
       loadingProjects: false,
       projectColumns: [
-        { title: 'Project Name', dataIndex: 'name', width: 150 },
+        { title: 'Project Name', dataIndex: 'name', width: 150, scopedSlots: { customRender: 'projectName' } },
         { title: 'Agency', dataIndex: 'agency', width: 150 },
         { title: 'Status', dataIndex: 'status', width: 100, scopedSlots: { customRender: 'status' } },
         { title: 'Location', dataIndex: 'location', width: 120 },
@@ -686,6 +690,10 @@ export default {
        await deleteAction(`/lcproject/delete/${id}`);
        this.$message.success('Deleted project');
        this.loadProjects();
+    },
+
+    handleProjectDetail(record) {
+      this.$router.push({ name: 'ProjectDetail', query: { id: record.id, from: 'agencyDetail', agencyId: this.agencyId } });
     },
 
     projectModalOk() {

@@ -157,7 +157,7 @@
   import HeadInfo from '@/components/tools/HeadInfo.vue'
   import Trend from '@/components/Trend'
   import { getBuyAndSaleStatistics, buyOrSalePrice, getPlatformConfigByKey } from '@/api/api'
-  import { handleIntroJs } from "@/utils/util"
+  // import { handleIntroJs } from "@/utils/util"
   import { getAction,postAction } from '../../api/manage'
 
   export default {
@@ -208,7 +208,7 @@
       this.initWithTenant()
     },
     mounted() {
-      handleIntroJs('indexChart', 1)
+      // handleIntroJs('indexChart', 1)
     },
     methods: {
       initInfo () {
