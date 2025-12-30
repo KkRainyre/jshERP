@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jsh.erp.datasource.mappers.LcQuoteMapperEx">
+
+    <select id="selectByCondition" resultMap="com.jsh.erp.datasource.mappers.LcQuoteMapper.BaseResultMap">
+        SELECT *
+        FROM lc_quotes
+        <where>
+            <if test="quoteNo != null and quoteNo != ''">
+                AND quote_no LIKE CONCAT('%', #{quoteNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="countsByCondition" resultType="java.lang.Long">
+        SELECT COUNT(id)
+        FROM lc_quotes
+        <where>
+            <if test="quoteNo != null and quoteNo != ''">
+                AND quote_no LIKE CONCAT('%', #{quoteNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

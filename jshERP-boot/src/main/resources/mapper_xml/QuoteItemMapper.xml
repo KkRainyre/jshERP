@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.QuoteItemMapper">
+  <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.QuoteItem">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="quote_id" jdbcType="BIGINT" property="quoteId" />
+    <result column="item_type" jdbcType="VARCHAR" property="itemType" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="product_series" jdbcType="VARCHAR" property="productSeries" />
+    <result column="product_model" jdbcType="VARCHAR" property="productModel" />
+    <result column="sku_code" jdbcType="VARCHAR" property="skuCode" />
+    <result column="item_name" jdbcType="VARCHAR" property="itemName" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="lighting_type" jdbcType="VARCHAR" property="lightingType" />
+    <result column="mounting" jdbcType="VARCHAR" property="mounting" />
+    <result column="profile_type" jdbcType="VARCHAR" property="profileType" />
+    <result column="shape" jdbcType="VARCHAR" property="shape" />
+    <result column="dimensions" jdbcType="VARCHAR" property="dimensions" />
+    <result column="length_spec" jdbcType="VARCHAR" property="lengthSpec" />
+    <result column="profile_finish" jdbcType="VARCHAR" property="profileFinish" />
+    <result column="output_spec" jdbcType="VARCHAR" property="outputSpec" />
+    <result column="cct" jdbcType="VARCHAR" property="cct" />
+    <result column="cri" jdbcType="VARCHAR" property="cri" />
+    <result column="beam_angle" jdbcType="VARCHAR" property="beamAngle" />
+    <result column="voltage" jdbcType="VARCHAR" property="voltage" />
+    <result column="dimming" jdbcType="VARCHAR" property="dimming" />
+    <result column="driver_type" jdbcType="VARCHAR" property="driverType" />
+    <result column="ip_rating" jdbcType="VARCHAR" property="ipRating" />
+    <result column="quantity" jdbcType="DECIMAL" property="quantity" />
+    <result column="unit_price" jdbcType="DECIMAL" property="unitPrice" />
+    <result column="line_total" jdbcType="DECIMAL" property="lineTotal" />
+    <result column="sort_order" jdbcType="INTEGER" property="sortOrder" />
+    <result column="print_flag" jdbcType="TINYINT" property="printFlag" />
+    <result column="ext1" jdbcType="VARCHAR" property="ext1" />
+    <result column="ext2" jdbcType="VARCHAR" property="ext2" />
+    <result column="ext3" jdbcType="VARCHAR" property="ext3" />
+    <result column="ext4" jdbcType="VARCHAR" property="ext4" />
+    <result column="ext5" jdbcType="VARCHAR" property="ext5" />
+    <result column="ext6" jdbcType="DECIMAL" property="ext6" />
+    <result column="ext7" jdbcType="DECIMAL" property="ext7" />
+    <result column="ext8" jdbcType="DECIMAL" property="ext8" />
+    <result column="ext9" jdbcType="TIMESTAMP" property="ext9" />
+    <result column="ext10" jdbcType="TIMESTAMP" property="ext10" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, quote_id, item_type, product_id, product_series, product_model, sku_code, item_name, 
+    description, lighting_type, mounting, profile_type, shape, dimensions, length_spec, 
+    profile_finish, output_spec, cct, cri, beam_angle, voltage, dimming, driver_type, 
+    ip_rating, quantity, unit_price, line_total, sort_order, print_flag, ext1, ext2, 
+    ext3, ext4, ext5, ext6, ext7, ext8, ext9, ext10, created_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from quote_items
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from quote_items
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.jsh.erp.datasource.entities.QuoteItem">
+    insert into quote_items (id, quote_id, item_type, 
+      product_id, product_series, product_model, 
+      sku_code, item_name, description, 
+      lighting_type, mounting, profile_type, 
+      shape, dimensions, length_spec, 
+      profile_finish, output_spec, cct, 
+      cri, beam_angle, voltage, 
+      dimming, driver_type, ip_rating, 
+      quantity, unit_price, line_total, 
+      sort_order, print_flag, ext1, 
+      ext2, ext3, ext4, ext5, 
+      ext6, ext7, ext8, ext9, 
+      ext10, created_time)
+    values (#{id,jdbcType=BIGINT}, #{quoteId,jdbcType=BIGINT}, #{itemType,jdbcType=VARCHAR}, 
+      #{productId,jdbcType=BIGINT}, #{productSeries,jdbcType=VARCHAR}, #{productModel,jdbcType=VARCHAR}, 
+      #{skuCode,jdbcType=VARCHAR}, #{itemName,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
+      #{lightingType,jdbcType=VARCHAR}, #{mounting,jdbcType=VARCHAR}, #{profileType,jdbcType=VARCHAR}, 
+      #{shape,jdbcType=VARCHAR}, #{dimensions,jdbcType=VARCHAR}, #{lengthSpec,jdbcType=VARCHAR}, 
+      #{profileFinish,jdbcType=VARCHAR}, #{outputSpec,jdbcType=VARCHAR}, #{cct,jdbcType=VARCHAR}, 
+      #{cri,jdbcType=VARCHAR}, #{beamAngle,jdbcType=VARCHAR}, #{voltage,jdbcType=VARCHAR}, 
+      #{dimming,jdbcType=VARCHAR}, #{driverType,jdbcType=VARCHAR}, #{ipRating,jdbcType=VARCHAR}, 
+      #{quantity,jdbcType=DECIMAL}, #{unitPrice,jdbcType=DECIMAL}, #{lineTotal,jdbcType=DECIMAL}, 
+      #{sortOrder,jdbcType=INTEGER}, #{printFlag,jdbcType=TINYINT}, #{ext1,jdbcType=VARCHAR}, 
+      #{ext2,jdbcType=VARCHAR}, #{ext3,jdbcType=VARCHAR}, #{ext4,jdbcType=VARCHAR}, #{ext5,jdbcType=VARCHAR}, 
+      #{ext6,jdbcType=DECIMAL}, #{ext7,jdbcType=DECIMAL}, #{ext8,jdbcType=DECIMAL}, #{ext9,jdbcType=TIMESTAMP}, 
+      #{ext10,jdbcType=TIMESTAMP}, #{createdTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.QuoteItem">
+    insert into quote_items
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="quoteId != null">
+        quote_id,
+      </if>
+      <if test="itemType != null">
+        item_type,
+      </if>
+      <if test="productId != null">
+        product_id,
+      </if>
+      <if test="productSeries != null">
+        product_series,
+      </if>
+      <if test="productModel != null">
+        product_model,
+      </if>
+      <if test="skuCode != null">
+        sku_code,
+      </if>
+      <if test="itemName != null">
+        item_name,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="lightingType != null">
+        lighting_type,
+      </if>
+      <if test="mounting != null">
+        mounting,
+      </if>
+      <if test="profileType != null">
+        profile_type,
+      </if>
+      <if test="shape != null">
+        shape,
+      </if>
+      <if test="dimensions != null">
+        dimensions,
+      </if>
+      <if test="lengthSpec != null">
+        length_spec,
+      </if>
+      <if test="profileFinish != null">
+        profile_finish,
+      </if>
+      <if test="outputSpec != null">
+        output_spec,
+      </if>
+      <if test="cct != null">
+        cct,
+      </if>
+      <if test="cri != null">
+        cri,
+      </if>
+      <if test="beamAngle != null">
+        beam_angle,
+      </if>
+      <if test="voltage != null">
+        voltage,
+      </if>
+      <if test="dimming != null">
+        dimming,
+      </if>
+      <if test="driverType != null">
+        driver_type,
+      </if>
+      <if test="ipRating != null">
+        ip_rating,
+      </if>
+      <if test="quantity != null">
+        quantity,
+      </if>
+      <if test="unitPrice != null">
+        unit_price,
+      </if>
+      <if test="lineTotal != null">
+        line_total,
+      </if>
+      <if test="sortOrder != null">
+        sort_order,
+      </if>
+      <if test="printFlag != null">
+        print_flag,
+      </if>
+      <if test="ext1 != null">
+        ext1,
+      </if>
+      <if test="ext2 != null">
+        ext2,
+      </if>
+      <if test="ext3 != null">
+        ext3,
+      </if>
+      <if test="ext4 != null">
+        ext4,
+      </if>
+      <if test="ext5 != null">
+        ext5,
+      </if>
+      <if test="ext6 != null">
+        ext6,
+      </if>
+      <if test="ext7 != null">
+        ext7,
+      </if>
+      <if test="ext8 != null">
+        ext8,
+      </if>
+      <if test="ext9 != null">
+        ext9,
+      </if>
+      <if test="ext10 != null">
+        ext10,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="quoteId != null">
+        #{quoteId,jdbcType=BIGINT},
+      </if>
+      <if test="itemType != null">
+        #{itemType,jdbcType=VARCHAR},
+      </if>
+      <if test="productId != null">
+        #{productId,jdbcType=BIGINT},
+      </if>
+      <if test="productSeries != null">
+        #{productSeries,jdbcType=VARCHAR},
+      </if>
+      <if test="productModel != null">
+        #{productModel,jdbcType=VARCHAR},
+      </if>
+      <if test="skuCode != null">
+        #{skuCode,jdbcType=VARCHAR},
+      </if>
+      <if test="itemName != null">
+        #{itemName,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="lightingType != null">
+        #{lightingType,jdbcType=VARCHAR},
+      </if>
+      <if test="mounting != null">
+        #{mounting,jdbcType=VARCHAR},
+      </if>
+      <if test="profileType != null">
+        #{profileType,jdbcType=VARCHAR},
+      </if>
+      <if test="shape != null">
+        #{shape,jdbcType=VARCHAR},
+      </if>
+      <if test="dimensions != null">
+        #{dimensions,jdbcType=VARCHAR},
+      </if>
+      <if test="lengthSpec != null">
+        #{lengthSpec,jdbcType=VARCHAR},
+      </if>
+      <if test="profileFinish != null">
+        #{profileFinish,jdbcType=VARCHAR},
+      </if>
+      <if test="outputSpec != null">
+        #{outputSpec,jdbcType=VARCHAR},
+      </if>
+      <if test="cct != null">
+        #{cct,jdbcType=VARCHAR},
+      </if>
+      <if test="cri != null">
+        #{cri,jdbcType=VARCHAR},
+      </if>
+      <if test="beamAngle != null">
+        #{beamAngle,jdbcType=VARCHAR},
+      </if>
+      <if test="voltage != null">
+        #{voltage,jdbcType=VARCHAR},
+      </if>
+      <if test="dimming != null">
+        #{dimming,jdbcType=VARCHAR},
+      </if>
+      <if test="driverType != null">
+        #{driverType,jdbcType=VARCHAR},
+      </if>
+      <if test="ipRating != null">
+        #{ipRating,jdbcType=VARCHAR},
+      </if>
+      <if test="quantity != null">
+        #{quantity,jdbcType=DECIMAL},
+      </if>
+      <if test="unitPrice != null">
+        #{unitPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="lineTotal != null">
+        #{lineTotal,jdbcType=DECIMAL},
+      </if>
+      <if test="sortOrder != null">
+        #{sortOrder,jdbcType=INTEGER},
+      </if>
+      <if test="printFlag != null">
+        #{printFlag,jdbcType=TINYINT},
+      </if>
+      <if test="ext1 != null">
+        #{ext1,jdbcType=VARCHAR},
+      </if>
+      <if test="ext2 != null">
+        #{ext2,jdbcType=VARCHAR},
+      </if>
+      <if test="ext3 != null">
+        #{ext3,jdbcType=VARCHAR},
+      </if>
+      <if test="ext4 != null">
+        #{ext4,jdbcType=VARCHAR},
+      </if>
+      <if test="ext5 != null">
+        #{ext5,jdbcType=VARCHAR},
+      </if>
+      <if test="ext6 != null">
+        #{ext6,jdbcType=DECIMAL},
+      </if>
+      <if test="ext7 != null">
+        #{ext7,jdbcType=DECIMAL},
+      </if>
+      <if test="ext8 != null">
+        #{ext8,jdbcType=DECIMAL},
+      </if>
+      <if test="ext9 != null">
+        #{ext9,jdbcType=TIMESTAMP},
+      </if>
+      <if test="ext10 != null">
+        #{ext10,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.jsh.erp.datasource.entities.QuoteItem">
+    update quote_items
+    <set>
+      <if test="quoteId != null">
+        quote_id = #{quoteId,jdbcType=BIGINT},
+      </if>
+      <if test="itemType != null">
+        item_type = #{itemType,jdbcType=VARCHAR},
+      </if>
+      <if test="productId != null">
+        product_id = #{productId,jdbcType=BIGINT},
+      </if>
+      <if test="productSeries != null">
+        product_series = #{productSeries,jdbcType=VARCHAR},
+      </if>
+      <if test="productModel != null">
+        product_model = #{productModel,jdbcType=VARCHAR},
+      </if>
+      <if test="skuCode != null">
+        sku_code = #{skuCode,jdbcType=VARCHAR},
+      </if>
+      <if test="itemName != null">
+        item_name = #{itemName,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="lightingType != null">
+        lighting_type = #{lightingType,jdbcType=VARCHAR},
+      </if>
+      <if test="mounting != null">
+        mounting = #{mounting,jdbcType=VARCHAR},
+      </if>
+      <if test="profileType != null">
+        profile_type = #{profileType,jdbcType=VARCHAR},
+      </if>
+      <if test="shape != null">
+        shape = #{shape,jdbcType=VARCHAR},
+      </if>
+      <if test="dimensions != null">
+        dimensions = #{dimensions,jdbcType=VARCHAR},
+      </if>
+      <if test="lengthSpec != null">
+        length_spec = #{lengthSpec,jdbcType=VARCHAR},
+      </if>
+      <if test="profileFinish != null">
+        profile_finish = #{profileFinish,jdbcType=VARCHAR},
+      </if>
+      <if test="outputSpec != null">
+        output_spec = #{outputSpec,jdbcType=VARCHAR},
+      </if>
+      <if test="cct != null">
+        cct = #{cct,jdbcType=VARCHAR},
+      </if>
+      <if test="cri != null">
+        cri = #{cri,jdbcType=VARCHAR},
+      </if>
+      <if test="beamAngle != null">
+        beam_angle = #{beamAngle,jdbcType=VARCHAR},
+      </if>
+      <if test="voltage != null">
+        voltage = #{voltage,jdbcType=VARCHAR},
+      </if>
+      <if test="dimming != null">
+        dimming = #{dimming,jdbcType=VARCHAR},
+      </if>
+      <if test="driverType != null">
+        driver_type = #{driverType,jdbcType=VARCHAR},
+      </if>
+      <if test="ipRating != null">
+        ip_rating = #{ipRating,jdbcType=VARCHAR},
+      </if>
+      <if test="quantity != null">
+        quantity = #{quantity,jdbcType=DECIMAL},
+      </if>
+      <if test="unitPrice != null">
+        unit_price = #{unitPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="lineTotal != null">
+        line_total = #{lineTotal,jdbcType=DECIMAL},
+      </if>
+      <if test="sortOrder != null">
+        sort_order = #{sortOrder,jdbcType=INTEGER},
+      </if>
+      <if test="printFlag != null">
+        print_flag = #{printFlag,jdbcType=TINYINT},
+      </if>
+      <if test="ext1 != null">
+        ext1 = #{ext1,jdbcType=VARCHAR},
+      </if>
+      <if test="ext2 != null">
+        ext2 = #{ext2,jdbcType=VARCHAR},
+      </if>
+      <if test="ext3 != null">
+        ext3 = #{ext3,jdbcType=VARCHAR},
+      </if>
+      <if test="ext4 != null">
+        ext4 = #{ext4,jdbcType=VARCHAR},
+      </if>
+      <if test="ext5 != null">
+        ext5 = #{ext5,jdbcType=VARCHAR},
+      </if>
+      <if test="ext6 != null">
+        ext6 = #{ext6,jdbcType=DECIMAL},
+      </if>
+      <if test="ext7 != null">
+        ext7 = #{ext7,jdbcType=DECIMAL},
+      </if>
+      <if test="ext8 != null">
+        ext8 = #{ext8,jdbcType=DECIMAL},
+      </if>
+      <if test="ext9 != null">
+        ext9 = #{ext9,jdbcType=TIMESTAMP},
+      </if>
+      <if test="ext10 != null">
+        ext10 = #{ext10,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.jsh.erp.datasource.entities.QuoteItem">
+    update quote_items
+    set quote_id = #{quoteId,jdbcType=BIGINT},
+      item_type = #{itemType,jdbcType=VARCHAR},
+      product_id = #{productId,jdbcType=BIGINT},
+      product_series = #{productSeries,jdbcType=VARCHAR},
+      product_model = #{productModel,jdbcType=VARCHAR},
+      sku_code = #{skuCode,jdbcType=VARCHAR},
+      item_name = #{itemName,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
+      lighting_type = #{lightingType,jdbcType=VARCHAR},
+      mounting = #{mounting,jdbcType=VARCHAR},
+      profile_type = #{profileType,jdbcType=VARCHAR},
+      shape = #{shape,jdbcType=VARCHAR},
+      dimensions = #{dimensions,jdbcType=VARCHAR},
+      length_spec = #{lengthSpec,jdbcType=VARCHAR},
+      profile_finish = #{profileFinish,jdbcType=VARCHAR},
+      output_spec = #{outputSpec,jdbcType=VARCHAR},
+      cct = #{cct,jdbcType=VARCHAR},
+      cri = #{cri,jdbcType=VARCHAR},
+      beam_angle = #{beamAngle,jdbcType=VARCHAR},
+      voltage = #{voltage,jdbcType=VARCHAR},
+      dimming = #{dimming,jdbcType=VARCHAR},
+      driver_type = #{driverType,jdbcType=VARCHAR},
+      ip_rating = #{ipRating,jdbcType=VARCHAR},
+      quantity = #{quantity,jdbcType=DECIMAL},
+      unit_price = #{unitPrice,jdbcType=DECIMAL},
+      line_total = #{lineTotal,jdbcType=DECIMAL},
+      sort_order = #{sortOrder,jdbcType=INTEGER},
+      print_flag = #{printFlag,jdbcType=TINYINT},
+      ext1 = #{ext1,jdbcType=VARCHAR},
+      ext2 = #{ext2,jdbcType=VARCHAR},
+      ext3 = #{ext3,jdbcType=VARCHAR},
+      ext4 = #{ext4,jdbcType=VARCHAR},
+      ext5 = #{ext5,jdbcType=VARCHAR},
+      ext6 = #{ext6,jdbcType=DECIMAL},
+      ext7 = #{ext7,jdbcType=DECIMAL},
+      ext8 = #{ext8,jdbcType=DECIMAL},
+      ext9 = #{ext9,jdbcType=TIMESTAMP},
+      ext10 = #{ext10,jdbcType=TIMESTAMP},
+      created_time = #{createdTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
