@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Service
@@ -33,10 +34,11 @@ public class LcQuoteService {
         }
     }
 
-    public List<LcQuote> select(String quoteNo, String customerName, String status) throws Exception {
+    public List<LcQuote> select(String quoteNo, String customerName, String status, String minPrice, String maxPrice)
+            throws Exception {
         try {
             PageUtils.startPage();
-            List<LcQuote> result = lcQuoteMapperEx.selectByCondition(quoteNo, customerName, status);
+            List<LcQuote> result = lcQuoteMapperEx.selectByCondition(quoteNo, customerName, status, minPrice, maxPrice);
             return result != null ? result : new java.util.ArrayList<>();
         } catch (Exception e) {
             JshException.readFail(logger, e);
@@ -52,6 +54,30 @@ public class LcQuoteService {
         int result = 0;
         try {
             // 1. Insert Header
+            Long tenantId = null;
+            try {
+                org.springframework.web.context.request.RequestAttributes attributes = org.springframework.web.context.request.RequestContextHolder
+                        .getRequestAttributes();
+                if (attributes != null) {
+                    HttpServletRequest request = ((org.springframework.web.context.request.ServletRequestAttributes) attributes)
+                            .getRequest();
+                    if (request != null) {
+                        Object tid = request.getSession().getAttribute("tenantId");
+                        if (tid != null) {
+                            tenantId = Long.valueOf(tid.toString());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore context errors
+            }
+            if (quote.getTenantId() == null && tenantId != null) {
+                quote.setTenantId(tenantId);
+            }
+            if (quote.getCustomerId() == null) {
+                quote.setCustomerId(0L); // Default to 0 if not provided
+            }
+
             result = lcQuoteMapper.insertSelective(quote);
 
             // 2. Insert Items
@@ -59,6 +85,18 @@ public class LcQuoteService {
                 for (com.jsh.erp.datasource.entities.QuoteItem item : quote.getItems()) {
                     item.setQuoteId(quote.getId()); // Link to header
                     item.setCreatedTime(new java.util.Date());
+                    if (item.getTenantId() == null && quote.getTenantId() != null) {
+                        item.setTenantId(quote.getTenantId());
+                    }
+                    if (item.getProductId() == null) {
+                        item.setProductId(0L);
+                    }
+                    if (item.getItemType() == null) {
+                        item.setItemType("0"); // Default to '0' (Ordinary/Custom)
+                    }
+                    if (item.getSkuCode() == null) {
+                        item.setSkuCode(item.getItemName()); // Use name as fallback SKU
+                    }
                     quoteItemMapper.insertSelective(item);
                 }
             }

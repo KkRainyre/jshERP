@@ -6,13 +6,17 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface LcQuoteMapperEx {
-    List<LcQuote> selectByCondition(
-            @Param("quoteNo") String quoteNo,
-            @Param("customerName") String customerName,
-            @Param("status") String status);
+        List<LcQuote> selectByCondition(
+                        @Param("quoteNo") String quoteNo,
+                        @Param("customerName") String customerName,
+                        @Param("status") String status,
+                        @Param("minPrice") String minPrice,
+                        @Param("maxPrice") String maxPrice);
 
-    Long countsByCondition(
-            @Param("quoteNo") String quoteNo,
-            @Param("customerName") String customerName,
-            @Param("status") String status);
+        Long countsByCondition(
+                        @Param("quoteNo") String quoteNo,
+                        @Param("customerName") String customerName,
+                        @Param("status") String status,
+                        @Param("minPrice") String minPrice,
+                        @Param("maxPrice") String maxPrice);
 }

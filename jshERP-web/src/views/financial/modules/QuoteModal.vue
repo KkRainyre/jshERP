@@ -453,8 +453,19 @@ export default {
             method = 'post'
           }
 
-          const formData = Object.assign(this.model, values)
-          formData.items = this.items // Append items
+          const formData = Object.assign({}, this.model, values)
+          
+          // Force include totalAmount in case it was excluded due to 'disabled'
+          formData.totalAmount = this.form.getFieldValue('totalAmount')
+
+          // Filter out tempId and non-backend fields
+          formData.items = this.items.map(item => ({
+            id: item.id,
+            itemName: item.itemName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            lineTotal: item.lineTotal // Included just in case, though calculated
+          }))
           
           request({
             url: httpurl,

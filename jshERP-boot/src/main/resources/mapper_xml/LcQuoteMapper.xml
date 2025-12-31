@@ -23,11 +23,12 @@
     <result column="ext10" jdbcType="TIMESTAMP" property="ext10" />
     <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
     <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
   </resultMap>
   <sql id="Base_Column_List">
     id, quote_no, customer_id, customer_name, status, currency, subtotal, tax_amount, 
     total_amount, ext1, ext2, ext3, ext4, ext5, ext6, ext7, ext8, ext9, ext10, created_time, 
-    updated_time
+    updated_time, tenant_id
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
@@ -46,16 +47,16 @@
       ext1, ext2, ext3, ext4, 
       ext5, ext6, ext7, ext8, 
       ext9, ext10, created_time, 
-      updated_time)
+      updated_time, tenant_id)
     values (#{id,jdbcType=BIGINT}, #{quoteNo,jdbcType=VARCHAR}, #{customerId,jdbcType=BIGINT}, 
       #{customerName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{currency,jdbcType=VARCHAR}, 
       #{subtotal,jdbcType=DECIMAL}, #{taxAmount,jdbcType=DECIMAL}, #{totalAmount,jdbcType=DECIMAL}, 
       #{ext1,jdbcType=VARCHAR}, #{ext2,jdbcType=VARCHAR}, #{ext3,jdbcType=VARCHAR}, #{ext4,jdbcType=VARCHAR}, 
       #{ext5,jdbcType=VARCHAR}, #{ext6,jdbcType=DECIMAL}, #{ext7,jdbcType=DECIMAL}, #{ext8,jdbcType=DECIMAL}, 
       #{ext9,jdbcType=TIMESTAMP}, #{ext10,jdbcType=TIMESTAMP}, #{createdTime,jdbcType=TIMESTAMP}, 
-      #{updatedTime,jdbcType=TIMESTAMP})
+      #{updatedTime,jdbcType=TIMESTAMP}, #{tenantId,jdbcType=BIGINT})
   </insert>
-  <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.LcQuote">
+  <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.LcQuote" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
     insert into lc_quotes
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -121,6 +122,9 @@
       <if test="updatedTime != null">
         updated_time,
       </if>
+      <if test="tenantId != null">
+        tenant_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -185,6 +189,9 @@
       </if>
       <if test="updatedTime != null">
         #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="tenantId != null">
+        #{tenantId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>

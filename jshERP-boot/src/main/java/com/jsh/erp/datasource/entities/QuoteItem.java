@@ -84,6 +84,16 @@ public class QuoteItem {
 
     private Date createdTime;
 
+    private Long tenantId;
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getId() {
         return id;
     }

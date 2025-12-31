@@ -1,7 +1,5 @@
 package com.jsh.erp.controller;
 
-import com.alibaba.fastjson.JSONObject;
-import com.github.pagehelper.PageInfo;
 import com.jsh.erp.datasource.entities.LcQuote;
 import com.jsh.erp.service.LcQuoteService;
 import org.springframework.web.bind.annotation.*;
@@ -11,30 +9,25 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/lcquote")
-public class LcQuoteController {
+public class LcQuoteController extends com.jsh.erp.base.BaseController {
 
     @Resource
     private LcQuoteService lcQuoteService;
 
     @GetMapping("/list")
-    public Object list(@RequestParam(required = false) String quoteNo,
-            @RequestParam(required = false) String customerName,
-            @RequestParam(required = false) String status) throws Exception {
+    public com.jsh.erp.base.TableDataInfo list(
+            @RequestParam(value = com.jsh.erp.utils.Constants.SEARCH, required = false) String search)
+            throws Exception {
 
-        List<LcQuote> list = lcQuoteService.select(quoteNo, customerName, status);
+        String quoteNo = com.jsh.erp.utils.StringUtil.getInfo(search, "quoteNo");
+        String customerName = com.jsh.erp.utils.StringUtil.getInfo(search, "customerName");
+        String status = com.jsh.erp.utils.StringUtil.getInfo(search, "status");
+        String minPrice = com.jsh.erp.utils.StringUtil.getInfo(search, "minPrice");
+        String maxPrice = com.jsh.erp.utils.StringUtil.getInfo(search, "maxPrice");
 
-        if (list == null) {
-            list = new java.util.ArrayList<>();
-        }
-
-        PageInfo<LcQuote> pageInfo = new PageInfo<>(list);
-        long total = pageInfo.getTotal();
-
-        JSONObject obj = new JSONObject();
-        obj.put("data", list);
-        obj.put("count", total);
-
-        return obj;
+        startPage();
+        List<LcQuote> list = lcQuoteService.select(quoteNo, customerName, status, minPrice, maxPrice);
+        return getDataTable(list);
     }
 
     @GetMapping("/get/{id}")

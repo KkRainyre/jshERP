@@ -17,6 +17,12 @@
             <if test="status != null and status != ''">
                 AND status = #{status}
             </if>
+            <if test="minPrice != null and minPrice != ''">
+                AND total_amount &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null and maxPrice != ''">
+                AND total_amount &lt;= #{maxPrice}
+            </if>
         </where>
         ORDER BY id DESC
     </select>
@@ -33,6 +39,12 @@
             </if>
             <if test="status != null and status != ''">
                 AND status = #{status}
+            </if>
+            <if test="minPrice != null and minPrice != ''">
+                AND total_amount &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null and maxPrice != ''">
+                AND total_amount &lt;= #{maxPrice}
             </if>
         </where>
     </select>

@@ -170,14 +170,25 @@ export default {
           width: 120,
           align: 'center',
           sorter: true,
-          customRender: (text) => text ? `¥ ${text}` : '-'
+          customRender: (text, record) => {
+             if (text === null || text === undefined || text === '') return '-'
+             const symbol = record.currency === 'CAD' ? 'C$' : 
+                            record.currency === 'USD' ? '$' :
+                            record.currency === 'CNY' ? '¥' : 
+                            record.currency === 'EUR' ? '€' : '$'
+             return `${symbol} ${text}`
+          }
         },
         {
           title: 'Date',
           dataIndex: 'createdTime',
           width: 150,
           align: 'center',
-          sorter: true
+          sorter: true,
+          customRender: (text) => {
+            if (!text) return ''
+            return text.length > 10 ? text.substring(0, 10) : text
+          }
         },
         {
           title: 'Status',

@@ -42,13 +42,14 @@
     <result column="ext9" jdbcType="TIMESTAMP" property="ext9" />
     <result column="ext10" jdbcType="TIMESTAMP" property="ext10" />
     <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
   </resultMap>
   <sql id="Base_Column_List">
     id, quote_id, item_type, product_id, product_series, product_model, sku_code, item_name, 
     description, lighting_type, mounting, profile_type, shape, dimensions, length_spec, 
     profile_finish, output_spec, cct, cri, beam_angle, voltage, dimming, driver_type, 
     ip_rating, quantity, unit_price, line_total, sort_order, print_flag, ext1, ext2, 
-    ext3, ext4, ext5, ext6, ext7, ext8, ext9, ext10, created_time
+    ext3, ext4, ext5, ext6, ext7, ext8, ext9, ext10, created_time, tenant_id
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
@@ -73,7 +74,7 @@
       sort_order, print_flag, ext1, 
       ext2, ext3, ext4, ext5, 
       ext6, ext7, ext8, ext9, 
-      ext10, created_time)
+      ext10, created_time, tenant_id)
     values (#{id,jdbcType=BIGINT}, #{quoteId,jdbcType=BIGINT}, #{itemType,jdbcType=VARCHAR}, 
       #{productId,jdbcType=BIGINT}, #{productSeries,jdbcType=VARCHAR}, #{productModel,jdbcType=VARCHAR}, 
       #{skuCode,jdbcType=VARCHAR}, #{itemName,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
@@ -86,7 +87,7 @@
       #{sortOrder,jdbcType=INTEGER}, #{printFlag,jdbcType=TINYINT}, #{ext1,jdbcType=VARCHAR}, 
       #{ext2,jdbcType=VARCHAR}, #{ext3,jdbcType=VARCHAR}, #{ext4,jdbcType=VARCHAR}, #{ext5,jdbcType=VARCHAR}, 
       #{ext6,jdbcType=DECIMAL}, #{ext7,jdbcType=DECIMAL}, #{ext8,jdbcType=DECIMAL}, #{ext9,jdbcType=TIMESTAMP}, 
-      #{ext10,jdbcType=TIMESTAMP}, #{createdTime,jdbcType=TIMESTAMP})
+      #{ext10,jdbcType=TIMESTAMP}, #{createdTime,jdbcType=TIMESTAMP}, #{tenantId,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.QuoteItem">
     insert into quote_items
@@ -211,6 +212,9 @@
       <if test="createdTime != null">
         created_time,
       </if>
+      <if test="tenantId != null">
+        tenant_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -332,6 +336,9 @@
       </if>
       <if test="createdTime != null">
         #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="tenantId != null">
+        #{tenantId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
