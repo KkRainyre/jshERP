@@ -23,6 +23,7 @@
                 }
               ]"
               placeholder="e.g. Q2023-001"
+              disabled
             />
           </a-form-item>
         </a-col>
@@ -55,6 +56,10 @@
             </a-select>
           </a-form-item>
         </a-col>
+        <!-- Hidden currency field to ensure it is submitted -->
+        <a-form-item v-show="false">
+          <a-input v-decorator="['currency', { initialValue: 'CAD' }]" />
+        </a-form-item>
 
         <!-- Spec Code Generator Section -->
         <a-col :span="24">
@@ -191,22 +196,55 @@
                <span>{{ (record.quantity * record.unitPrice).toFixed(2) }}</span>
              </template>
              <template slot="action" slot-scope="text, record, index">
-               <a @click="deleteItem(index)">Delete</a>
+                <a-popconfirm title="Sure to delete?" @confirm="deleteItem(index)">
+                  <a-icon type="delete" style="color: red; cursor: pointer"/>
+                </a-popconfirm>
              </template>
            </a-table>
         <br/>
         </a-col>
 
         <a-col :span="24">
-          <a-form-item label="Total Amount (Auto-Calculated)">
-             <a-input-number
-               v-decorator="['totalAmount']" 
-               style="width: 100%"
-               :formatter="value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
-               :parser="value => value.replace(/\$\s?|(,*)/g, '')"
-               disabled
-             />
-          </a-form-item>
+           <a-row :gutter="16">
+             <a-col :span="6">
+                <a-form-item label="Country">
+                   <a-select v-model="targetCountry" @change="handleCountryChange">
+                      <a-select-option value="CA">Canada</a-select-option>
+                      <a-select-option value="US">USA</a-select-option>
+                   </a-select>
+                </a-form-item>
+             </a-col>
+             <a-col :span="6">
+                <a-form-item label="State/Province">
+                   <a-select v-model="targetProvince" @change="handleProvinceChange" show-search optionFilterProp="children">
+                      <a-select-option v-for="(rate, key) in currentProvinces" :key="key" :value="key">
+                         {{ key }}
+                      </a-select-option>
+                   </a-select>
+                </a-form-item>
+             </a-col>
+             <a-col :span="4">
+                <a-form-item label="Subtotal">
+                   <span style="font-size: 16px; line-height: 40px;">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ subTotal.toFixed(2) }}</span>
+                </a-form-item>
+             </a-col>
+             <a-col :span="4">
+                <a-form-item :label="`Tax (${(taxRate * 100).toFixed(2)}%)`">
+                   <span style="font-size: 16px; line-height: 40px;">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ taxAmount.toFixed(2) }}</span>
+                </a-form-item>
+             </a-col>
+             <a-col :span="4">
+                 <a-form-item label="Total Amount">
+                   <span style="font-size: 18px; font-weight: bold; line-height: 40px; color: #52c41a">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ form.getFieldValue('totalAmount') }}</span>
+                   <!-- Hidden input to store value -->
+                   <a-input-number v-show="false" v-decorator="['totalAmount']"/>
+                 </a-form-item>
+             </a-col>
+             <!-- Hidden Ext3 for Operator -->
+             <a-form-item v-show="false">
+               <a-input v-decorator="['ext3']" />
+             </a-form-item>
+           </a-row>
         </a-col>
 
       </a-row>
@@ -216,6 +254,10 @@
 
 <script>
 import { axios as request } from '@/utils/request'
+import { getAction } from '@/api/manage'
+import { mapGetters } from 'vuex'
+import pick from 'lodash.pick'
+import moment from "moment"
 
 export default {
   name: 'QuoteModal',
@@ -301,10 +343,46 @@ export default {
         { title: 'Unit Price', dataIndex: 'unitPrice', width: 120, scopedSlots: { customRender: 'unitPrice' } },
         { title: 'Total', dataIndex: 'lineTotal', width: 120, scopedSlots: { customRender: 'lineTotal' } },
         { title: 'Action', dataIndex: 'action', width: 60, align: 'center', scopedSlots: { customRender: 'action' } }
-      ]
+      ],
+      // Tax Logic
+      targetCountry: 'CA',
+      targetProvince: 'Ontario',
+      subTotal: 0,
+      taxAmount: 0,
+      taxRate: 0.13,
+      taxRates: {
+        'CA': {
+           'Alberta': 0.05,
+           'British Columbia': 0.12,
+           'Manitoba': 0.12,
+           'New Brunswick': 0.15,
+           'Newfoundland and Labrador': 0.15,
+           'Northwest Territories': 0.05,
+           'Nova Scotia': 0.15,
+           'Nunavut': 0.05,
+           'Ontario': 0.13,
+           'Prince Edward Island': 0.15,
+           'Quebec': 0.14975,
+           'Saskatchewan': 0.11,
+           'Yukon': 0.05
+        },
+        'US': {
+           'California': 0.0725,
+           'New York': 0.088,
+           'Texas': 0.0625,
+           'Florida': 0.06,
+           'Illinois': 0.0625,
+           'Pennsylvania': 0.06,
+           'Ohio': 0.0575,
+           'Georgia': 0.04,
+           'North Carolina': 0.0475
+           // Add more as needed
+        }
+      }
     }
   },
   computed: {
+    ...mapGetters(['userInfo']),
     currentConfig() {
       return this.productConfigs[this.selectedProduct] || {}
     },
@@ -320,11 +398,19 @@ export default {
       // Only include fields if they are selected/present?
       // For now assume strictly positional.
       return `${c.prefix}-${g.shape || '_'}-${dim}-${g.cct || '_'}-${g.control || '_'}-${g.profile || '_'}-${g.color || '_'}-${g.mounting || '_'}-${c.suffix}`
+    },
+    currentProvinces() {
+       return this.taxRates[this.targetCountry] || {}
     }
   },
   methods: {
     add () {
-      this.edit({})
+      // Auto-generate Quote No: Q + YYYYMMDD + - + 3 Random Digits
+      const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+      const random = Math.floor(Math.random() * 900) + 100
+      const genQuoteNo = `Q${date}-${random}`
+
+      this.edit({ quoteNo: genQuoteNo })
       this.items = []
       this.resetGenerator()
     },
@@ -352,10 +438,7 @@ export default {
     },
     
     addFromGenerator() {
-      if (!this.generator.dimension) {
-        this.$message.warning('Please enter a dimension')
-        return
-      }
+      // Allow adding even with empty dimension (will use placeholder)
       this.items.push({
         tempId: Date.now(),
         itemName: this.generatedSpecCode,
@@ -405,7 +488,57 @@ export default {
           currency: this.model.currency || 'CAD',
           totalAmount: this.model.totalAmount
         })
+        
+        // Restore Location from ext fields if available
+        if (this.model.ext1) {
+            this.targetCountry = this.model.ext1
+        }
+        if (this.model.ext2) {
+            this.targetProvince = this.model.ext2
+            // Trigger tax update
+            this.handleProvinceChange()
+        } else {
+             // Default if new or legacy
+            this.targetCountry = 'CA'
+            this.targetProvince = 'Ontario'
+            this.handleProvinceChange()
+        }
+        
+        // Load Operator (ext3) if exists, else it will be set on save
+        if(this.model.ext3) {
+           this.form.setFieldsValue({ ext3: this.model.ext3 })
+        }
+
+        // Fetch detailed items if editing
+        if (this.isEdit) {
+           this.loadDetail(this.model.id)
+        }
       })
+    },
+    loadDetail(id) {
+       // Since the controller returns the object directly or wrapped, we try getAction
+       // Note: Helper implementation might vary, assuming standard getAction usage
+       getAction('/lcquote/get/' + id).then(res => {
+          let fetchedItems = []
+          
+          if (res && res.items) {
+             fetchedItems = res.items
+          } else if (res && res.data && res.data.items) {
+             fetchedItems = res.data.items
+          } else if (res && res.result && res.result.items) {
+             fetchedItems = res.result.items
+          }
+
+          if (fetchedItems) {
+             // Inject tempId for frontend table stability
+             this.items = fetchedItems.map(item => ({
+               ...item,
+               // Use existing ID as tempId or generate one if missing (shouldn't happen for DB items)
+               tempId: item.id || Date.now() + Math.random()
+             }))
+             this.calculateTotal()
+          }
+       })
     },
     addItem() {
       this.items.push({
@@ -425,12 +558,37 @@ export default {
     onPriceChange(record) {
        this.calculateTotal()
     },
+    handleCountryChange() {
+       // Reset province when country changes
+       this.targetProvince = undefined 
+       this.taxRate = 0
+       
+       // Auto-set Currency
+       const currency = this.targetCountry === 'CA' ? 'CAD' : 'USD'
+       console.log('Setting currency to:', currency)
+       this.form.setFieldsValue({ currency: currency })
+
+       this.calculateTotal()
+    },
+    handleProvinceChange() {
+       const rates = this.taxRates[this.targetCountry]
+       if (rates && this.targetProvince) {
+          this.taxRate = rates[this.targetProvince] || 0
+       } else {
+          this.taxRate = 0
+       }
+       this.calculateTotal()
+    },
     calculateTotal() {
       let total = 0
       this.items.forEach(item => {
         total += (item.quantity * item.unitPrice)
       })
-      this.form.setFieldsValue({ totalAmount: total })
+      this.subTotal = total
+      this.taxAmount = total * this.taxRate
+      const grandTotal = total + this.taxAmount
+      
+      this.form.setFieldsValue({ totalAmount: grandTotal.toFixed(2) })
     },
     close () {
       this.$emit('close')
@@ -440,6 +598,7 @@ export default {
       const that = this
       // Validate inputs
       this.form.validateFields((err, values) => {
+        console.log('Form Values on Save:', values) 
         if (!err) {
           that.confirmLoading = true
           let httpurl = ''
@@ -457,6 +616,29 @@ export default {
           
           // Force include totalAmount in case it was excluded due to 'disabled'
           formData.totalAmount = this.form.getFieldValue('totalAmount')
+          
+          // Add Subtotal and Tax Amount
+          formData.subtotal = this.subTotal
+          formData.taxAmount = this.taxAmount
+          
+          // Persist Location data using extra fields (ext1, ext2)
+          formData.ext1 = this.targetCountry
+          formData.ext2 = this.targetProvince
+          
+          // Persist Operator (ext3)
+          // If editing, use existing ext3. If new, use current user.
+          let currentOperator = this.form.getFieldValue('ext3')
+          if (!currentOperator && this.userInfo) {
+             // userInfo getter might be function or object depending on implementation in this project
+             // Based on Logo.vue it seems to be an object: const user = this.userInfo
+             // But UserMenu.vue says const user = this.userInfo()
+             // access safely
+             const u = typeof this.userInfo === 'function' ? this.userInfo() : this.userInfo
+             if(u && u.username) {
+                currentOperator = u.username
+             }
+          }
+          formData.ext3 = currentOperator
 
           // Filter out tempId and non-backend fields
           formData.items = this.items.map(item => ({

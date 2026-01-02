@@ -165,6 +165,12 @@ export default {
           sorter: true
         },
         {
+          title: 'Operator',
+          dataIndex: 'ext3',
+          width: 120, // Added width for consistency
+          align: 'center' // Added align for consistency
+        },
+        {
           title: 'Total',
           dataIndex: 'totalAmount',
           width: 120,
@@ -179,17 +185,7 @@ export default {
              return `${symbol} ${text}`
           }
         },
-        {
-          title: 'Date',
-          dataIndex: 'createdTime',
-          width: 150,
-          align: 'center',
-          sorter: true,
-          customRender: (text) => {
-            if (!text) return ''
-            return text.length > 10 ? text.substring(0, 10) : text
-          }
-        },
+
         {
           title: 'Status',
           dataIndex: 'status',
@@ -198,11 +194,15 @@ export default {
           scopedSlots: { customRender: 'statusRender' }
         },
         {
-          title: 'Action',
-          dataIndex: 'action',
-          width: 120,
+          title: 'Create Date',
+          dataIndex: 'createdTime',
+          width: 150,
           align: 'center',
-          scopedSlots: { customRender: 'action' }
+          sorter: true,
+          customRender: (text) => {
+            if (!text) return ''
+            return text.length > 10 ? text.substring(0, 10) : text
+          }
         }
       ],
       url: {
@@ -261,8 +261,35 @@ export default {
         this.$message.warning('Please select records to delete!')
         return
       }
-      this.$message.info('Batch delete coming soon')
+      var ids = ""
+      for (var a = 0; a < this.selectedRowKeys.length; a++) {
+        ids += this.selectedRowKeys[a] + ","
+      }
+      var that = this
+      this.$confirm({
+        title: "Confirm Delete",
+        content: "Are you sure you want to delete selected data?",
+        okText: "Confirm",
+        cancelText: "Cancel",
+        onOk: function () {
+          that.loading = true
+          deleteAction(that.url.deleteBatch, { ids: ids }).then((res) => {
+            // Handle both standard Result object and raw int return
+            if (res.code === 200 || res === 200 || (typeof res === 'number' && res > 0)) {
+              that.$message.success('Deleted successfully')
+              that.loadData()
+              that.onClearSelected()
+            } else {
+              that.$message.warning(res.message || 'Delete failed')
+            }
+          }).finally(() => {
+            that.loading = false
+          })
+        }
+      })
     },
+
+
     
     getQueryParams() {
       // 获取查询条件

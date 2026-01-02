@@ -25,9 +25,20 @@ public class LcQuoteService {
     @Resource
     private LcQuoteMapperEx lcQuoteMapperEx;
 
+    @Resource
+    private com.jsh.erp.datasource.mappers.QuoteItemMapperEx quoteItemMapperEx;
+
     public LcQuote getQuote(Long id) throws Exception {
         try {
-            return lcQuoteMapper.selectByPrimaryKey(id);
+            LcQuote lq = lcQuoteMapper.selectByPrimaryKey(id);
+            if (lq != null) {
+                com.jsh.erp.datasource.vo.QuoteVo vo = new com.jsh.erp.datasource.vo.QuoteVo();
+                org.springframework.beans.BeanUtils.copyProperties(lq, vo);
+                List<com.jsh.erp.datasource.entities.QuoteItem> items = quoteItemMapperEx.selectByQuoteId(id);
+                vo.setItems(items);
+                return vo;
+            }
+            return null;
         } catch (Exception e) {
             JshException.readFail(logger, e);
             return null;
