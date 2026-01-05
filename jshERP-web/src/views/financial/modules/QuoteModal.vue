@@ -205,46 +205,64 @@
         </a-col>
 
         <a-col :span="24">
-           <a-row :gutter="16">
-             <a-col :span="6">
-                <a-form-item label="Country">
-                   <a-select v-model="targetCountry" @change="handleCountryChange">
-                      <a-select-option value="CA">Canada</a-select-option>
-                      <a-select-option value="US">USA</a-select-option>
-                   </a-select>
-                </a-form-item>
-             </a-col>
-             <a-col :span="6">
-                <a-form-item label="State/Province">
-                   <a-select v-model="targetProvince" @change="handleProvinceChange" show-search optionFilterProp="children">
-                      <a-select-option v-for="(rate, key) in currentProvinces" :key="key" :value="key">
-                         {{ key }}
-                      </a-select-option>
-                   </a-select>
-                </a-form-item>
-             </a-col>
-             <a-col :span="4">
-                <a-form-item label="Subtotal">
-                   <span style="font-size: 16px; line-height: 40px;">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ subTotal.toFixed(2) }}</span>
-                </a-form-item>
-             </a-col>
-             <a-col :span="4">
-                <a-form-item :label="`Tax (${(taxRate * 100).toFixed(2)}%)`">
-                   <span style="font-size: 16px; line-height: 40px;">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ taxAmount.toFixed(2) }}</span>
-                </a-form-item>
-             </a-col>
-             <a-col :span="4">
-                 <a-form-item label="Total Amount">
-                   <span style="font-size: 18px; font-weight: bold; line-height: 40px; color: #52c41a">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ form.getFieldValue('totalAmount') }}</span>
-                   <!-- Hidden input to store value -->
-                   <a-input-number v-show="false" v-decorator="['totalAmount']"/>
-                 </a-form-item>
-             </a-col>
+            <a-row type="flex" justify="space-between" align="middle">
+              <!-- Left Side: Location -->
+              <a-col :span="10">
+                <a-row :gutter="8">
+                  <a-col :span="12">
+                    <a-form-item label="Country" style="margin-bottom: 0;">
+                       <a-select v-model="targetCountry" @change="handleCountryChange">
+                          <a-select-option value="CA">Canada</a-select-option>
+                          <a-select-option value="US">USA</a-select-option>
+                       </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="State/Province" style="margin-bottom: 0;">
+                       <a-select v-model="targetProvince" @change="handleProvinceChange" show-search optionFilterProp="children">
+                          <a-select-option v-for="(rate, key) in currentProvinces" :key="key" :value="key">
+                             {{ key }}
+                          </a-select-option>
+                       </a-select>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-col>
+
+              <!-- Right Side: Financials -->
+              <a-col :span="13" style="text-align: right;">
+                 <a-row :gutter="16" type="flex" align="bottom">
+                     <a-col :span="8" style="padding-right: 20px;">
+                        <a-form-item style="margin-bottom: 0;">
+                           <span slot="label" style="display: block; text-align: right;">Subtotal</span>
+                           <span style="font-size: 16px;">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ subTotal.toFixed(2) }}</span>
+                        </a-form-item>
+                     </a-col>
+                     <a-col :span="8">
+                        <a-form-item style="margin-bottom: 0;">
+                           <template slot="label">
+                               <div style="display: flex; justify-content: flex-end; align-items: center;">
+                                   <a-checkbox v-model="isTaxFree" @change="calculateTotal" style="margin-right: 8px; font-size: 12px; font-weight: normal;">Tax-free</a-checkbox>
+                                   <span>Tax ({{ ((isTaxFree ? 0 : taxRate) * 100).toFixed(2) }}%)</span>
+                               </div>
+                           </template>
+                           <span style="font-size: 16px;">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ taxAmount.toFixed(2) }}</span>
+                        </a-form-item>
+                     </a-col>
+                    <a-col :span="8">
+                        <a-form-item style="margin-bottom: 0;">
+                          <span slot="label" style="display: block; text-align: right;">Total Amount</span>
+                          <span style="font-size: 18px; font-weight: bold; color: #52c41a">{{ targetCountry === 'CA' ? 'C$' : '$' }}{{ form.getFieldValue('totalAmount') }}</span>
+                          <a-input-number v-show="false" v-decorator="['totalAmount']"/>
+                        </a-form-item>
+                    </a-col>
+                 </a-row>
+              </a-col>
+            </a-row>
              <!-- Hidden Ext3 for Operator -->
              <a-form-item v-show="false">
                <a-input v-decorator="['ext3']" />
              </a-form-item>
-           </a-row>
         </a-col>
 
       </a-row>
@@ -349,6 +367,7 @@ export default {
       targetProvince: 'Ontario',
       subTotal: 0,
       taxAmount: 0,
+      isTaxFree: false,
       taxRate: 0.13,
       taxRates: {
         'CA': {
@@ -503,7 +522,14 @@ export default {
             this.targetProvince = 'Ontario'
             this.handleProvinceChange()
         }
-        
+
+        // Infer Tax-Free State
+        if (this.model.taxAmount === 0 && this.taxRate > 0 && this.model.totalAmount > 0) {
+            this.isTaxFree = true
+        } else {
+            this.isTaxFree = false
+        }
+         
         // Load Operator (ext3) if exists, else it will be set on save
         if(this.model.ext3) {
            this.form.setFieldsValue({ ext3: this.model.ext3 })
@@ -585,7 +611,13 @@ export default {
         total += (item.quantity * item.unitPrice)
       })
       this.subTotal = total
-      this.taxAmount = total * this.taxRate
+      
+      if (this.isTaxFree) {
+        this.taxAmount = 0
+      } else {
+        this.taxAmount = total * this.taxRate
+      }
+      
       const grandTotal = total + this.taxAmount
       
       this.form.setFieldsValue({ totalAmount: grandTotal.toFixed(2) })
