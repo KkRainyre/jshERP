@@ -4,7 +4,7 @@
     :title="isEdit ? 'Edit Quote' : 'New Quote'"
     :confirmLoading="confirmLoading"
     :maskClosable="false"
-    width="1000px"
+    width="98%"
     @ok="handleOk"
     @cancel="handleCancel"
   >
@@ -28,19 +28,38 @@
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="Customer Name">
-            <a-input
-              v-decorator="[
-                'customerName',
-                {
-                  rules: [
-                    { required: true, message: 'Please input Customer Name!' },
-                    { max: 255, message: 'Max 255 characters' }
-                  ]
-                }
-              ]"
-              placeholder="Customer Name"
-            />
+          <a-form-item label="Agency">
+            <a-select 
+              v-decorator="['agencyId', { rules: [{ required: true, message: 'Please select Agency!' }] }]"
+              placeholder="Select Agency"
+              show-search
+              optionFilterProp="children"
+              @change="handleAgencyChange"
+            >
+              <a-select-option v-for="item in agencyList" :key="item.id" :value="item.id">
+                {{ item.name }}
+              </a-select-option>
+            </a-select>
+            <!-- Hidden Fields for mapping -->
+            <a-form-item v-show="false">
+               <a-input v-decorator="['customerId']" />
+               <a-input v-decorator="['customerName']" />
+            </a-form-item>
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="12">
+          <a-form-item label="Project">
+             <a-select 
+                v-decorator="['ext4']"
+                placeholder="Select Project"
+                show-search
+                optionFilterProp="children"
+             >
+                <a-select-option v-for="p in projectList" :key="p.id" :value="p.name">
+                   {{ p.name }}
+                </a-select-option>
+             </a-select>
           </a-form-item>
         </a-col>
 
@@ -169,6 +188,188 @@
           </a-card>
         </a-col>
 
+        <!-- Hardware and Light Split Section -->
+        <a-col :span="24" style="margin-bottom: 20px;">
+           <a-row :gutter="16">
+              <a-col :span="12">
+                 <a-card title="Hardware" size="small" style="background: #f9f9f9;">
+                    <a-row :gutter="8">
+                       <a-col :span="12">
+                          <a-form-item label="Profile" style="margin-bottom: 8px">
+                             <a-select v-model="hardwareConfig.profile" placeholder="Profile">
+                                <a-select-option value="P1">Profile 1</a-select-option>
+                                <a-select-option value="P2">Profile 2</a-select-option>
+                             </a-select>
+                          </a-form-item>
+                       </a-col>
+                       <a-col :span="12">
+                          <a-form-item label="Split" style="margin-bottom: 8px">
+                             <a-select v-model="hardwareConfig.split" placeholder="Split">
+                                <a-select-option value="Yes">Yes</a-select-option>
+                                <a-select-option value="No">No</a-select-option>
+                             </a-select>
+                          </a-form-item>
+                       </a-col>
+                       <a-col :span="12">
+                          <a-form-item label="Mounting" style="margin-bottom: 8px">
+                             <a-select v-model="hardwareConfig.mounting" placeholder="Mounting">
+                                <a-select-option value="Surface">Surface</a-select-option>
+                                <a-select-option value="Recessed">Recessed</a-select-option>
+                             </a-select>
+                          </a-form-item>
+                       </a-col>
+                       <a-col :span="12">
+                          <a-form-item label="Crossbean" style="margin-bottom: 8px">
+                             <a-select v-model="hardwareConfig.crossbean" placeholder="Crossbean-Vertical">
+                                <a-select-option value="TypeA">Type A</a-select-option>
+                                <a-select-option value="TypeB">Type B</a-select-option>
+                             </a-select>
+                          </a-form-item>
+                       </a-col>
+
+                      <a-col :span="12">
+                        <a-form-item label="Crossbean" style="margin-bottom: 8px">
+                          <a-select v-model="hardwareConfig.crossbean" placeholder="Crossbean-Horizational">
+                            <a-select-option value="TypeA">Type A</a-select-option>
+                            <a-select-option value="TypeB">Type B</a-select-option>
+                          </a-select>
+                        </a-form-item>
+                      </a-col>
+                    </a-row>
+                 </a-card>
+              </a-col>
+              <a-col :span="12">
+                  <a-card title="Light" size="small" style="background: #f9f9f9;">
+                     <a-row :gutter="8">
+                        <a-col :span="12">
+                           <a-form-item label="Pitch" style="margin-bottom: 8px">
+                              <a-select v-model="lightConfig.pitch" placeholder="Pitch">
+                                 <a-select-option value="P1.2">P1.2</a-select-option>
+                                 <a-select-option value="P1.5">P1.5</a-select-option>
+                                 <a-select-option value="P2.0">P2.0</a-select-option>
+                              </a-select>
+                           </a-form-item>
+                        </a-col>
+                        <a-col :span="12">
+                           <a-form-item label="CCT" style="margin-bottom: 8px">
+                              <a-select v-model="lightConfig.cct" placeholder="CCT">
+                                 <a-select-option value="3000K">3000K</a-select-option>
+                                 <a-select-option value="4000K">4000K</a-select-option>
+                                 <a-select-option value="6000K">6000K</a-select-option>
+                              </a-select>
+                           </a-form-item>
+                        </a-col>
+                        <a-col :span="12">
+                           <a-form-item label="Wattage" style="margin-bottom: 8px">
+                              <a-select v-model="lightConfig.wattage" placeholder="Wattage">
+                                 <a-select-option value="10W">10W</a-select-option>
+                                 <a-select-option value="20W">20W</a-select-option>
+                                 <a-select-option value="50W">50W</a-select-option>
+                              </a-select>
+                           </a-form-item>
+                        </a-col>
+                        <a-col :span="12">
+                           <a-form-item label="Lumen Output" style="margin-bottom: 8px">
+                              <a-select v-model="lightConfig.lumenOutput" placeholder="Lumen">
+                                 <a-select-option value="1000lm">1000lm</a-select-option>
+                                 <a-select-option value="2000lm">2000lm</a-select-option>
+                                 <a-select-option value="5000lm">5000lm</a-select-option>
+                              </a-select>
+                           </a-form-item>
+                        </a-col>
+                        <a-col :span="12">
+                           <a-form-item label="Amount of Led" style="margin-bottom: 8px">
+                              <a-select v-model="lightConfig.ledAmount" placeholder="LED Count">
+                                 <a-select-option value="60">60</a-select-option>
+                                 <a-select-option value="120">120</a-select-option>
+                                 <a-select-option value="240">240</a-select-option>
+                              </a-select>
+                           </a-form-item>
+                        </a-col>
+                     </a-row>
+                  </a-card>
+              </a-col>
+           </a-row>
+           
+           <!-- Electrical and Diffuser Split Section -->
+           <a-row :gutter="16" style="margin-top: 16px;">
+              <a-col :span="12">
+                 <a-card title="Electrical" size="small" style="background: #f9f9f9;">
+                    <!-- Drivers -->
+                    <a-row :gutter="8" style="margin-bottom: 8px">
+                       <a-col :span="14">
+                          <a-select v-model="electricalConfig.driverType" placeholder="Drivers">
+                             <a-select-option value="MeanWell">MeanWell</a-select-option>
+                             <a-select-option value="Philips">Philips</a-select-option>
+                             <a-select-option value="Tridonic">Tridonic</a-select-option>
+                          </a-select>
+                       </a-col>
+                       <a-col :span="10">
+                          <a-input-number v-model="electricalConfig.driverCount" placeholder="# of drivers" style="width: 100%" :min="0" />
+                       </a-col>
+                    </a-row>
+                    
+                    <!-- Dimming -->
+                    <a-row :gutter="8" style="margin-bottom: 8px">
+                       <a-col :span="14">
+                          <a-select v-model="electricalConfig.dimmingType" placeholder="Dimming">
+                             <a-select-option value="DALI">DALI</a-select-option>
+                             <a-select-option value="0-10V">0-10V</a-select-option>
+                             <a-select-option value="Triac">Triac</a-select-option>
+                          </a-select>
+                       </a-col>
+                       <a-col :span="10">
+                          <a-input-number v-model="electricalConfig.controllerCount" placeholder="# controllers" style="width: 100%" :min="0" />
+                       </a-col>
+                    </a-row>
+
+                    <!-- AC Box -->
+                    <a-row :gutter="8" style="margin-bottom: 8px; display: flex; align-items: center;">
+                       <a-col :span="14" style="text-align: right; padding-right: 8px;">
+                          AC junction box
+                       </a-col>
+                       <a-col :span="10">
+                           <a-input-number v-model="electricalConfig.acBoxCount" placeholder="#" style="width: 100%" :min="0" />
+                       </a-col>
+                    </a-row>
+
+                    <!-- DC Box -->
+                    <a-row :gutter="8" style="margin-bottom: 0; display: flex; align-items: center;">
+                       <a-col :span="14" style="text-align: right; padding-right: 8px;">
+                          DC junction box
+                       </a-col>
+                       <a-col :span="10">
+                           <a-input-number v-model="electricalConfig.dcBoxCount" placeholder="#" style="width: 100%" :min="0" />
+                       </a-col>
+                    </a-row>
+                 </a-card>
+              </a-col>
+              <a-col :span="12">
+                 <a-card title="Diffuser" size="small" style="background: #f9f9f9;">
+                    <a-form-item label="Type" style="margin-bottom: 12px">
+                       <a-select v-model="diffuserConfig.type" placeholder="Select Type">
+                          <a-select-option value="Stretch ceiling">Stretch ceiling</a-select-option>
+                          <a-select-option value="Perforated metal">Perforated metal</a-select-option>
+                          <a-select-option value="Fabric ceiling">Fabric ceiling</a-select-option>
+                       </a-select>
+                    </a-form-item>
+                    
+                    <a-form-item style="margin-bottom: 0">
+                       <div style="display: flex; align-items: center;">
+                          <a-checkbox v-model="diffuserConfig.hasBlockout">block out</a-checkbox>
+                          <a-input 
+                             v-if="diffuserConfig.hasBlockout" 
+                             v-model="diffuserConfig.blockoutDimensions" 
+                             placeholder="dimensions of blockout" 
+                             style="margin-left: 8px; flex: 1" 
+                          />
+                       </div>
+                    </a-form-item>
+                 </a-card>
+              </a-col>
+           </a-row>
+        </a-col>
+
         <a-col :span="24">
            <h3>Product Items</h3>
            <a-button type="dashed" style="width: 100%; margin-bottom: 8px" @click="addItem">
@@ -185,6 +386,15 @@
            >
              <template slot="itemName" slot-scope="text, record">
                <a-input v-model="record.itemName" placeholder="Item Name" />
+             </template>
+             <template slot="description" slot-scope="text, record">
+               <div style="display: flex; align-items: center;">
+                 <a-input v-model="record.description" placeholder="Description" style="flex: 1; margin-right: 4px;" />
+                 <a-tooltip title="Copy Specs from Generator">
+                   <a-button icon="snippets" size="small" style="margin-right: 4px" @click="copySpecsToDescription(record)" />
+                 </a-tooltip>
+                 <a-button icon="edit" size="small" @click="openDescriptionEditor(record)" />
+               </div>
              </template>
              <template slot="quantity" slot-scope="text, record">
                <a-input-number v-model="record.quantity" :min="1" @change="onQtyChange(record)" style="width: 100%" />
@@ -267,6 +477,17 @@
 
       </a-row>
     </a-form>
+    
+    <!-- Description Editor Modal -->
+    <a-modal
+      title="Edit Description"
+      :visible="editorVisible"
+      @ok="handleEditorOk"
+      @cancel="editorVisible = false"
+      width="600px"
+    >
+      <a-textarea v-model="editorContent" :rows="10" placeholder="Enter detailed description..." />
+    </a-modal>
   </a-modal>
 </template>
 
@@ -287,6 +508,9 @@ export default {
       model: {},
       form: this.$form.createForm(this),
       items: [],
+      // Dropdown Data
+      agencyList: [],
+      projectList: [],
       // Generator State
       selectedProduct: 'LumosCielo',
       productConfigs: {
@@ -356,7 +580,8 @@ export default {
         mounting: undefined
       },
       paymentTableColumns: [
-        { title: 'Item Name', dataIndex: 'itemName', scopedSlots: { customRender: 'itemName' } },
+        { title: 'Item Name', dataIndex: 'itemName', width: 300, scopedSlots: { customRender: 'itemName' } },
+        { title: 'Description', dataIndex: 'description', scopedSlots: { customRender: 'description' } },
         { title: 'Qty', dataIndex: 'quantity', width: 80, scopedSlots: { customRender: 'quantity' } },
         { title: 'Unit Price', dataIndex: 'unitPrice', width: 120, scopedSlots: { customRender: 'unitPrice' } },
         { title: 'Total', dataIndex: 'lineTotal', width: 120, scopedSlots: { customRender: 'lineTotal' } },
@@ -397,6 +622,37 @@ export default {
            'North Carolina': 0.0475
            // Add more as needed
         }
+      },
+      // Editor State
+      editorVisible: false,
+      editorContent: '',
+      currentEditingItem: null,
+      // Hardware Section Config
+      hardwareConfig: {
+         profile: undefined,
+         split: undefined,
+         mounting: undefined,
+         crossbean: undefined
+      },
+      lightConfig: {
+         pitch: undefined,
+         cct: undefined,
+         wattage: undefined,
+         lumenOutput: undefined,
+         ledAmount: undefined
+      },
+      electricalConfig: {
+         driverType: undefined,
+         driverCount: undefined,
+         dimmingType: undefined,
+         controllerCount: undefined,
+         acBoxCount: undefined,
+         dcBoxCount: undefined
+      },
+      diffuserConfig: {
+         type: undefined,
+         hasBlockout: false,
+         blockoutDimensions: ''
       }
     }
   },
@@ -432,6 +688,60 @@ export default {
       this.edit({ quoteNo: genQuoteNo })
       this.items = []
       this.resetGenerator()
+      this.loadDropdownData()
+    },
+    
+    loadDropdownData() {
+       // Load Agencies - Try standard pagination params
+       const agencyParams = { 
+          currentPage: 1, 
+          pageSize: 500,
+          search: JSON.stringify({}) // Explicit empty search object may be needed by backend parsing
+       }
+       
+       getAction('/agency/list', agencyParams).then(res => {
+          console.log('Agency List Response:', res)
+          if (res && res.rows) {
+             this.agencyList = res.rows
+          } else if (res && res.data && res.data.rows) {
+             this.agencyList = res.data.rows
+          } else if (res && Array.isArray(res)) {
+              this.agencyList = res
+          }
+       }).catch(err => {
+           console.error('Failed to load agencies:', err)
+       })
+    },
+    
+    loadProjects(agencyName) {
+       this.projectList = []
+       const params = { pageSize: 500 }
+       if (agencyName) {
+           params.agency = agencyName
+       }
+       
+       // Load Projects filtered by Agency
+       getAction('/lcproject/select', params).then(res => {
+          if (res && res.data && res.data.data) {
+              this.projectList = res.data.data
+          } else if (res && res.data) {
+             this.projectList = res.data
+          }
+       })
+    },
+
+    handleAgencyChange(value) {
+       const agency = this.agencyList.find(a => a.id === value)
+       if (agency) {
+          this.form.setFieldsValue({
+             customerId: agency.id,
+             customerName: agency.name,
+             ext4: undefined // Reset project since agency changed
+          })
+          this.loadProjects(agency.name)
+       } else {
+          this.projectList = []
+       }
     },
     
     // Reset generator defaults whenever product changes or modal opens
@@ -502,7 +812,10 @@ export default {
       this.$nextTick(() => {
         this.form.setFieldsValue({
           quoteNo: this.model.quoteNo,
+          agencyId: this.model.customerId, // Map customerId back to Agency Select
+          customerId: this.model.customerId,
           customerName: this.model.customerName,
+          ext4: this.model.ext4, // Map ext4 back to Project Select
           status: this.model.status || 'Draft',
           currency: this.model.currency || 'CAD',
           totalAmount: this.model.totalAmount
@@ -539,6 +852,16 @@ export default {
         if (this.isEdit) {
            this.loadDetail(this.model.id)
         }
+        
+        // Ensure dropdowns are loaded if editing directly
+        if(this.agencyList.length === 0) {
+            this.loadDropdownData()
+        }
+        
+        // Load projects for current agency
+        if (this.model.customerName) {
+            this.loadProjects(this.model.customerName)
+        }
       })
     },
     loadDetail(id) {
@@ -570,6 +893,7 @@ export default {
       this.items.push({
         tempId: Date.now(),
         itemName: '',
+        description: '',
         quantity: 1,
         unitPrice: 0
       })
@@ -626,6 +950,112 @@ export default {
       this.$emit('close')
       this.visible = false
     },
+    openDescriptionEditor(record) {
+      this.currentEditingItem = record
+      this.editorContent = record.description || ''
+      this.editorVisible = true
+    },
+    copySpecsToDescription(record) {
+      const c = this.currentConfig
+      const g = this.generator
+      const opts = this.currentOptions
+      
+      const specs = []
+      
+      // Product Family
+      if (this.productConfigs[this.selectedProduct]) {
+         specs.push(`Product Family: ${this.productConfigs[this.selectedProduct].label}`)
+      }
+
+      // Prefix
+      if (c.prefix) {
+         specs.push(`Prefix: ${c.prefix}`)
+      }
+      
+      const mapping = {
+        shape: 'Shape',
+        cct: 'CCT',
+        control: 'Control',
+        profile: 'Profile',
+        color: 'Color',
+        mounting: 'Mounting'
+      }
+
+      // Dimension (Insert after Shape, before others to match visual order roughly)
+      // Or just append based on mapping order. Let's handle dimension dynamically or fixed.
+      // Based on image: Prefix -> Shape -> Dimension -> CCT -> ...
+      
+      // Shape
+      if (g.shape && opts.shape) {
+         const opt = opts.shape.find(o => o.value === g.shape)
+         specs.push(`Shape: ${opt ? opt.label : g.shape}`)
+      }
+
+      // Dimension
+      if (g.dimension) {
+         specs.push(`Dimension: ${g.dimension}`)
+      }
+
+      // CCT
+      if (g.cct && opts.cct) {
+         const opt = opts.cct.find(o => o.value === g.cct)
+         specs.push(`CCT: ${opt ? opt.label : g.cct}`)
+      }
+
+      // Control
+      if (g.control && opts.control) {
+         const opt = opts.control.find(o => o.value === g.control)
+         specs.push(`Control: ${opt ? opt.label : g.control}`)
+      }
+
+      // Profile
+      if (g.profile && opts.profile) {
+         const opt = opts.profile.find(o => o.value === g.profile)
+         specs.push(`Profile: ${opt ? opt.label : g.profile}`)
+      }
+
+      // Color
+      if (g.color && opts.color) {
+         const opt = opts.color.find(o => o.value === g.color)
+         specs.push(`Color: ${opt ? opt.label : g.color}`)
+      }
+
+      // Mounting
+      if (g.mounting && opts.mounting) {
+         const opt = opts.mounting.find(o => o.value === g.mounting)
+         specs.push(`Mounting: ${opt ? opt.label : g.mounting}`)
+      }
+
+      // Suffix
+      if (c.suffix) {
+         specs.push(`Suffix: ${c.suffix}`)
+      }
+      
+      if (specs.length > 0) {
+         const text = specs.join('\n')
+         let newDesc = record.description || ''
+         
+         if (newDesc.trim() !== '') {
+            newDesc += '\n' + text
+         } else {
+            newDesc = text
+         }
+         
+         // Use $set to ensure reactivity triggers the UI update immediately
+         this.$set(record, 'description', newDesc)
+         this.$forceUpdate() // Force re-render to capture state change in table slots if deeply nested
+         
+         this.$message.success('Specs copied to description')
+      } else {
+         this.$message.info('No specs selected to copy')
+      }
+    },
+    handleEditorOk() {
+      if (this.currentEditingItem) {
+        this.currentEditingItem.description = this.editorContent
+      }
+      this.editorVisible = false
+    },
     handleOk () {
       const that = this
       // Validate inputs
@@ -676,6 +1106,7 @@ export default {
           formData.items = this.items.map(item => ({
             id: item.id,
             itemName: item.itemName,
+            description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             lineTotal: item.lineTotal // Included just in case, though calculated

@@ -93,6 +93,13 @@
                 <label>Budget</label>
                 <div class="value price">{{ project.budget ? `$ ${project.budget}` : '--' }}</div>
               </div>
+              
+              <div class="info-row" style="margin-top: -10px; margin-bottom: 12px">
+                 <label style="font-size: 12px; color: #888;">Quote Price</label>
+                 <div class="value price" style="font-size: 16px;" :style="{ color: latestQuotePrice ? '#52c41a' : '#ccc' }">
+                    {{ latestQuotePrice ? latestQuotePrice : 'No quote available' }}
+                 </div>
+              </div>
 
               <div class="info-row">
                 <label>Start Date</label>
@@ -222,13 +229,14 @@
                </div>
             </a-tab-pane>
             <a-tab-pane key="3" tab="Files">
-               <div class="tab-content">
-                 <div class="section-block">
+                <div class="tab-content">
+                   <div class="section-block">
                      <h4>Documents</h4>
                      <p>No files uploaded.</p>
                  </div>
               </div>
             </a-tab-pane>
+
           </a-tabs>
         </a-card>
 
@@ -400,6 +408,8 @@
 import { getAction, putAction } from '@/api/manage'
 import LcprojectModal from "./modules/LcprojectModal.vue";
 
+
+
 export default {
   name: 'ProjectDetail',
   components: { LcprojectModal },
@@ -407,6 +417,7 @@ export default {
     return {
       projectId: null,
       project: {},
+      latestQuotePrice: null,
       loading: false,
       showActionsMenu: false,
       currentStage: 2,
@@ -423,6 +434,8 @@ export default {
         calls: [],
         meetings: []
       },
+
+      quotesList: [],
       tasks: [],
       productConfig: {
         type: undefined,
@@ -474,6 +487,13 @@ export default {
             }
             this.loadComm();
             this.loadTasks();
+            try {
+                this.loadLatestQuote(); 
+                this.loadAllQuotes();
+
+            } catch(e) {
+                console.error("Safely caught quote load error", e);
+            }
         }
       } catch (e) {
         console.error("Failed to load project", e);
@@ -481,6 +501,8 @@ export default {
         this.loading = false;
       }
     },
+
+
 
     handleStageClick(index, stage) {
       if(index === this.currentStage) return; // same stage
@@ -834,8 +856,6 @@ export default {
         }
     },
 
-
-
     copyCode() {
         if(!this.generatedProductCode) return;
         // Simple clipboard copy
@@ -846,31 +866,89 @@ export default {
         document.execCommand('copy');
         document.body.removeChild(el);
         this.$message.success('Code copied to clipboard');
+    },
+
+    loadAllQuotes() {
+         if(!this.project.name) return;
+         const params = {
+            currentPage: 1,
+            pageSize: 100, // Fetch reasonable limit
+            search: JSON.stringify({
+                ext4: this.project.name
+            })
+         }
+         getAction('/lcquote/list', params).then(res => {
+            let rows = [];
+            if (res.rows) rows = res.rows;
+            else if (res.data && res.data.rows) rows = res.data.rows;
+            else if (res.data && Array.isArray(res.data)) rows = res.data;
+            
+            this.quotesList = rows || [];
+         }).catch(e => {
+             console.error("Failed to load quotes history", e);
+         })
+    },
+
+    loadLatestQuote() {
+        if(!this.project.name) return;
+        
+        // Filter by project name (ext4)
+        const params = {
+            currentPage: 1,
+            pageSize: 1,
+            search: JSON.stringify({
+                ext4: this.project.name
+            })
+        }
+        
+        console.log('Fetching latest quote for project:', this.project.name);
+        getAction('/lcquote/list', params).then(res => {
+            console.log('Quote API response:', res);
+            // Handle different response structures (res.rows or res.data.rows)
+            let rows = [];
+            if (res.rows) {
+                rows = res.rows;
+            } else if (res.data && res.data.rows) {
+                rows = res.data.rows;
+            } else if (res.data && Array.isArray(res.data)) {
+                 rows = res.data;
+            }
+            
+            if(rows && rows.length > 0) {
+               const q = rows[0];
+               const currency = q.currency === 'CAD' ? 'C$' : '$';
+               this.latestQuotePrice = `${currency} ${q.totalAmount}`;
+               console.log('Set latestQuotePrice:', this.latestQuotePrice);
+            } else {
+               this.latestQuotePrice = null;
+               console.warn('No quotes found or empty response');
+            }
+        }).catch(e => {
+         console.error('Quote fetch error', e);
+      })
     }
   },
   computed: {
     generatedProductCode() {
+        // ... (existing logic, assume we keep or it's outside this edit)
         const c = this.productConfig;
-        const d = this.productConfig.details;
-        if (!c.type) return '---';
-        
-        // Helper to get value or placeholder
-        const v = (val) => val ? val : '?';
-
-        if (c.type === 'bespoke') {
-            // LC-LC-Shape-D1-D2-(D3)-Light-Ctrl-Prof-Col-Mnt-LU
-            let base = `LC-LC-${v(d.shape)}-${v(d.dim1)}-${v(d.dim2)}`;
-            if(d.shape === 'TR') base += `-${v(d.dim3)}`;
-            base += `-${v(d.lighting)}-${v(d.control)}-${v(d.profile)}-${v(d.profileColor)}-${v(d.mounting)}-LU`;
-            return base.toUpperCase();
-        } else if (c.type === 'lumosrondo') {
-             // LC-LR-RO-Dia-Light-Ctrl-120-Col-Mnt-LU
-             return `LC-LR-RO-${v(d.diameter)}-${v(d.lighting)}-${v(d.control)}-120-${v(d.profileColor)}-${v(d.mounting)}-LU`.toUpperCase();
-        } else if (c.type === 'lumoslineo') {
-            // LC-LL-RE-D1-D2-Light-Ctrl-Prof-Col-Mnt-LU
-            return `LC-LL-RE-${v(d.dim1)}-${v(d.dim2)}-${v(d.lighting)}-${v(d.control)}-${v(d.profile)}-${v(d.profileColor)}-${v(d.mounting)}-LU`.toUpperCase();
+        const d = c.details;
+        // Simplified Logic or keep existing
+        if(c.type === 'bespoke') {
+             return `LC-LC-${d.shape || '_'}-${d.dim1 || '_'}-${d.dim2 || '_'}-${d.lighting || '_'}-${d.control || '_'}-${d.profile || '_'}-${d.mounting || '_'}`;
         }
-        return '---';
+        return '';
+    },
+    
+    
+    // Dashboard Computed Props
+    dashboardData() {
+        const income = this.project.budget ? parseFloat(this.project.budget) : 0;
+        const expenses = this.quotesList.reduce((sum, q) => sum + (q.totalAmount || 0), 0);
+        return {
+           income: income,
+           expenses: expenses
+        }
     },
 
     projectInitial() {

@@ -23,6 +23,9 @@
             <if test="maxPrice != null and maxPrice != ''">
                 AND total_amount &lt;= #{maxPrice}
             </if>
+            <if test="projectName != null and projectName != ''">
+                AND ext4 LIKE CONCAT('%', #{projectName}, '%')
+            </if>
         </where>
         ORDER BY id DESC
     </select>
@@ -45,6 +48,9 @@
             </if>
             <if test="maxPrice != null and maxPrice != ''">
                 AND total_amount &lt;= #{maxPrice}
+            </if>
+            <if test="projectName != null and projectName != ''">
+                AND ext4 LIKE CONCAT('%', #{projectName}, '%')
             </if>
         </where>
     </select>

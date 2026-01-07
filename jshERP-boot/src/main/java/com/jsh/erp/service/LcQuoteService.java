@@ -45,11 +45,13 @@ public class LcQuoteService {
         }
     }
 
-    public List<LcQuote> select(String quoteNo, String customerName, String status, String minPrice, String maxPrice)
+    public List<LcQuote> select(String quoteNo, String customerName, String status, String minPrice, String maxPrice,
+            String projectName)
             throws Exception {
         try {
             PageUtils.startPage();
-            List<LcQuote> result = lcQuoteMapperEx.selectByCondition(quoteNo, customerName, status, minPrice, maxPrice);
+            List<LcQuote> result = lcQuoteMapperEx.selectByCondition(quoteNo, customerName, status, minPrice, maxPrice,
+                    projectName);
             return result != null ? result : new java.util.ArrayList<>();
         } catch (Exception e) {
             JshException.readFail(logger, e);

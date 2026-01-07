@@ -11,12 +11,14 @@ public interface LcQuoteMapperEx {
                         @Param("customerName") String customerName,
                         @Param("status") String status,
                         @Param("minPrice") String minPrice,
-                        @Param("maxPrice") String maxPrice);
+                        @Param("maxPrice") String maxPrice,
+                        @Param("projectName") String projectName);
 
         Long countsByCondition(
                         @Param("quoteNo") String quoteNo,
                         @Param("customerName") String customerName,
                         @Param("status") String status,
                         @Param("minPrice") String minPrice,
-                        @Param("maxPrice") String maxPrice);
+                        @Param("maxPrice") String maxPrice,
+                        @Param("projectName") String projectName);
 }

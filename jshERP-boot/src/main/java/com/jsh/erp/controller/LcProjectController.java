@@ -47,6 +47,11 @@ public class LcProjectController {
         return obj;
     }
 
+    @GetMapping("/analysis")
+    public Object analysis(@RequestParam String agency) {
+        return lcProjectService.getAnalysis(agency);
+    }
+
     @GetMapping("/get/{id}")
     public LcProject get(@PathVariable Long id) {
         return lcProjectService.getProject(id);

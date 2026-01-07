@@ -170,4 +170,38 @@ public class LcProjectService {
         info.data = data;
         return info;
     }
+
+    public Map<String, Object> getAnalysis(String agency) {
+        Map<String, Object> map = new HashMap<>();
+        // Get all projects for this agency to calc stats
+        // We pass null for pagination to retrieve all records
+        List<LcProject> list = lcProjectMapper.selectByCondition(null, agency, null, null, null, null, null);
+
+        BigDecimal sum = BigDecimal.ZERO;
+        BigDecimal lastBudget = BigDecimal.ZERO;
+        int countWithBudget = 0;
+
+        if (list != null && !list.isEmpty()) {
+            // List is ordered by ID DESC (newest first)
+            for (LcProject p : list) {
+                if (p.getBudget() != null) {
+                    // Capture the first non-null budget as 'last project budget' (most recent)
+                    if (lastBudget.compareTo(BigDecimal.ZERO) == 0) {
+                        lastBudget = p.getBudget();
+                    }
+                    sum = sum.add(p.getBudget());
+                    countWithBudget++;
+                }
+            }
+        }
+
+        BigDecimal avg = (countWithBudget > 0)
+                ? sum.divide(new BigDecimal(countWithBudget), 2, BigDecimal.ROUND_HALF_UP)
+                : BigDecimal.ZERO;
+
+        map.put("avgBudget", avg);
+        map.put("lastProjectBudget", lastBudget);
+        map.put("projectCount", list != null ? list.size() : 0);
+        return map;
+    }
 }

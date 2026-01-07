@@ -24,9 +24,10 @@ public class LcQuoteController extends com.jsh.erp.base.BaseController {
         String status = com.jsh.erp.utils.StringUtil.getInfo(search, "status");
         String minPrice = com.jsh.erp.utils.StringUtil.getInfo(search, "minPrice");
         String maxPrice = com.jsh.erp.utils.StringUtil.getInfo(search, "maxPrice");
+        String projectName = com.jsh.erp.utils.StringUtil.getInfo(search, "ext4");
 
-        //startPage();
-        List<LcQuote> list = lcQuoteService.select(quoteNo, customerName, status, minPrice, maxPrice);
+        startPage();
+        List<LcQuote> list = lcQuoteService.select(quoteNo, customerName, status, minPrice, maxPrice, projectName);
         return getDataTable(list);
     }
 
