@@ -188,6 +188,42 @@
           </a-card>
         </a-col>
 
+        <!-- Application Section -->
+        <a-col :span="24">
+          <a-card title="Application" size="small" style="margin-bottom: 20px; background: #f5f5f5;">
+             <a-row :gutter="24" type="flex" align="middle">
+                 <a-col :span="6">
+                     <a-form-item label="Application Type" style="margin-bottom: 0">
+                         <a-select v-model="applicationType" style="width: 100%">
+                             <a-select-option value="Wall">Wall</a-select-option>
+                             <a-select-option value="Ceiling">Ceiling</a-select-option>
+                         </a-select>
+                     </a-form-item>
+                 </a-col>
+                 <a-col :span="6">
+                     <a-form-item label="Measurement" style="margin-bottom: 0">
+                         <a-select v-model="measurementUnit" style="width: 100%" placeholder="Unit">
+                             <a-select-option value="Feet">Feet</a-select-option>
+                             <a-select-option value="Inches">Inches</a-select-option>
+                             <a-select-option value="Mm">mm</a-select-option>
+                             <a-select-option value="Cm">cm</a-select-option>
+                         </a-select>
+                     </a-form-item>
+                 </a-col>
+                 <a-col :span="6">
+                   <a-form-item label="X (Horizontal)" style="margin-bottom: 0">
+                      <a-input v-model="applicationDimensions.x" placeholder=" Enter Horizontal Dimension " @blur="checkDimensions" />
+                   </a-form-item>
+                </a-col>
+                <a-col :span="6">
+                   <a-form-item label="Y (Vertical)" style="margin-bottom: 0">
+                      <a-input v-model="applicationDimensions.y" placeholder=" Enter Vertical Dimension " @blur="checkDimensions" />
+                   </a-form-item>
+                </a-col>
+             </a-row>
+          </a-card>
+        </a-col>
+
         <!-- Hardware and Light Split Section -->
         <a-col :span="24" style="margin-bottom: 20px;">
            <a-row :gutter="16">
@@ -203,38 +239,80 @@
                           </a-form-item>
                        </a-col>
                        <a-col :span="12">
-                          <a-form-item label="Split" style="margin-bottom: 8px">
-                             <a-select v-model="hardwareConfig.split" placeholder="Split">
-                                <a-select-option value="Yes">Yes</a-select-option>
-                                <a-select-option value="No">No</a-select-option>
-                             </a-select>
-                          </a-form-item>
-                       </a-col>
-                       <a-col :span="12">
                           <a-form-item label="Mounting" style="margin-bottom: 8px">
                              <a-select v-model="hardwareConfig.mounting" placeholder="Mounting">
-                                <a-select-option value="Surface">Surface</a-select-option>
                                 <a-select-option value="Recessed">Recessed</a-select-option>
+                                <a-select-option value="Surface Mounted">Surface Mounted</a-select-option>
+                                <a-select-option value="Suspended">Suspended</a-select-option>
                              </a-select>
                           </a-form-item>
                        </a-col>
                        <a-col :span="12">
-                          <a-form-item label="Crossbean" style="margin-bottom: 8px">
-                             <a-select v-model="hardwareConfig.crossbean" placeholder="Crossbean-Vertical">
-                                <a-select-option value="TypeA">Type A</a-select-option>
-                                <a-select-option value="TypeB">Type B</a-select-option>
-                             </a-select>
-                          </a-form-item>
+                           <a-row :gutter="8">
+                             <a-col :span="24">
+                                 <span style="font-size: 14px; color: rgba(0,0,0,0.85); display: inline-block; margin-bottom: 8px">Split - Horizontal</span>
+                             </a-col>
+                             <a-col :span="12">
+                                 <a-form-item style="margin-bottom: 8px">
+                                     <a-input v-model="hardwareConfig.splitHorizontalQuantity" placeholder="Qty" />
+                                 </a-form-item>
+                             </a-col>
+                             <a-col :span="12">
+                                 <a-form-item style="margin-bottom: 8px">
+                                     <a-input v-model="hardwareConfig.splitHorizontalLength" placeholder="Len" />
+                                 </a-form-item>
+                             </a-col>
+                             <a-col :span="24">
+                                 <span style="font-size: 14px; color: rgba(0,0,0,0.85); display: inline-block; margin-bottom: 8px">Split - Vertical</span>
+                             </a-col>
+                             <a-col :span="12">
+                                 <a-form-item style="margin-bottom: 8px">
+                                     <a-input v-model="hardwareConfig.splitVerticalQuantity" placeholder="Qty" />
+                                 </a-form-item>
+                             </a-col>
+                             <a-col :span="12">
+                                 <a-form-item style="margin-bottom: 8px">
+                                     <a-input v-model="hardwareConfig.splitVerticalLength" placeholder="Len" />
+                                 </a-form-item>
+                             </a-col>
+                           </a-row>
+                        </a-col>
+                       <a-col :span="12">
+                          <a-row :gutter="8">
+                             <a-col :span="24">
+                                <span style="font-size: 14px; color: rgba(0,0,0,0.85); display: inline-block; margin-bottom: 8px">
+                                   Crossbeam - Horizontal
+                                   <span v-if="Number(applicationDimensions.x) >= Number(applicationDimensions.y)" style="color: #1890ff; font-weight: bold; margin-left: 8px;">(Main Crossbeam)</span>
+                                </span>
+                             </a-col>
+                             <a-col :span="12">
+                                <a-form-item style="margin-bottom: 8px">
+                                   <a-input v-model="hardwareConfig.crossbeamHorizontalQuantity" placeholder="Qty" />
+                                </a-form-item>
+                             </a-col>
+                             <a-col :span="12">
+                                <a-form-item style="margin-bottom: 8px">
+                                   <a-input v-model="hardwareConfig.crossbeamHorizontalLength" placeholder="Len" />
+                                </a-form-item>
+                             </a-col>
+                             <a-col :span="24">
+                                <span style="font-size: 14px; color: rgba(0,0,0,0.85); display: inline-block; margin-bottom: 8px">
+                                   Crossbeam - Vertical
+                                   <span v-if="Number(applicationDimensions.y) > Number(applicationDimensions.x)" style="color: #1890ff; font-weight: bold; margin-left: 8px;">(Main Crossbeam)</span>
+                                </span>
+                             </a-col>
+                             <a-col :span="12">
+                                <a-form-item style="margin-bottom: 8px">
+                                   <a-input v-model="hardwareConfig.crossbeamVerticalQuantity" placeholder="Qty" />
+                                </a-form-item>
+                             </a-col>
+                             <a-col :span="12">
+                                <a-form-item style="margin-bottom: 8px">
+                                   <a-input v-model="hardwareConfig.crossbeamVerticalLength" placeholder="Len" />
+                                </a-form-item>
+                             </a-col>
+                          </a-row>
                        </a-col>
-
-                      <a-col :span="12">
-                        <a-form-item label="Crossbean" style="margin-bottom: 8px">
-                          <a-select v-model="hardwareConfig.crossbean" placeholder="Crossbean-Horizational">
-                            <a-select-option value="TypeA">Type A</a-select-option>
-                            <a-select-option value="TypeB">Type B</a-select-option>
-                          </a-select>
-                        </a-form-item>
-                      </a-col>
                     </a-row>
                  </a-card>
               </a-col>
@@ -629,11 +707,17 @@ export default {
       currentEditingItem: null,
       // Hardware Section Config
       hardwareConfig: {
-         profile: undefined,
-         split: undefined,
-         mounting: undefined,
-         crossbean: undefined
-      },
+       profile: undefined,
+       mounting: undefined,
+       splitHorizontalQuantity: '',
+       splitHorizontalLength: '',
+       splitVerticalQuantity: '',
+       splitVerticalLength: '',
+       crossbeamHorizontalQuantity: '',
+       crossbeamHorizontalLength: '',
+       crossbeamVerticalQuantity: '',
+       crossbeamVerticalLength: ''
+    },
       lightConfig: {
          pitch: undefined,
          cct: undefined,
@@ -649,11 +733,15 @@ export default {
          acBoxCount: undefined,
          dcBoxCount: undefined
       },
+      mainCrossbeamDirection: 'Horizontal', // Track current main direction
       diffuserConfig: {
          type: undefined,
          hasBlockout: false,
          blockoutDimensions: ''
-      }
+      },
+       applicationType: 'Wall',
+       measurementUnit: undefined,
+      applicationDimensions: { x: '', y: '' }
     }
   },
   computed: {
@@ -678,7 +766,144 @@ export default {
        return this.taxRates[this.targetCountry] || {}
     }
   },
+  watch: {
+    applicationType(val) {
+      if (val === 'Ceiling') {
+        this.$message.warning('Dimensions: X (longer side), Y (shorter side). X is always the longer dimension for ceiling applications.')
+      }
+    }
+  },
   methods: {
+     checkDimensions() {
+       const xVal = this.applicationDimensions.x
+       const yVal = this.applicationDimensions.y
+
+       // Basic validation: > 0 and no decimals
+       if (xVal) {
+          if (String(xVal).includes('.')) {
+             this.$message.warning('Horizontal dimension cannot contain decimals.')
+             return
+          }
+          if (Number(xVal) <= 0) {
+             this.$message.warning('Horizontal dimension must be greater than 0.')
+             return
+          }
+       }
+       if (yVal) {
+          if (String(yVal).includes('.')) {
+             this.$message.warning('Vertical dimension cannot contain decimals.')
+             return
+          }
+          if (Number(yVal) <= 0) {
+             this.$message.warning('Vertical dimension must be greater than 0.')
+             return
+          }
+       }
+
+       // Helper for rounding
+       const round2 = (num) => (Math.round((Number(num) + Number.EPSILON) * 100) / 100).toFixed(2)
+
+       // Split Calculation Logic
+       let xSplit = 0
+       let x_len_Split = 0
+
+       if (Number(xVal) > 100) {
+          xSplit = Math.floor(Number(xVal) / 100)
+          x_len_Split = Number(xVal)/(xSplit+1);
+
+       }else{
+          x_len_Split = Number(xVal);
+       }
+
+
+       this.hardwareConfig.splitHorizontalQuantity = xSplit > 0 ? xSplit : 0
+       this.hardwareConfig.splitHorizontalLength = x_len_Split > 0 ? round2(x_len_Split) : '0.00'
+
+       let ySplit = 0
+       let y_len_Split = 0
+       if (Number(yVal) > 100) {
+          ySplit = Math.floor(Number(yVal) / 100)
+          y_len_Split = Number(yVal)/(ySplit+1)
+       } else {
+          y_len_Split = Number(yVal)
+       }
+       this.hardwareConfig.splitVerticalQuantity = ySplit > 0 ? ySplit : 0
+       this.hardwareConfig.splitVerticalLength = y_len_Split > 0 ? round2(y_len_Split) : '0.00'
+
+       // Main Crossbeam Logic (< 4) & Clear on Switch & Auto-Calc
+       const x = Number(xVal)
+       const y = Number(yVal)
+       
+       // Identify Main Crossbeam (Horizontal if x >= y, else Vertical)
+       const newDirection = x >= y ? 'Horizontal' : 'Vertical'
+       
+       // If direction changed, clear all crossbeam data
+       if (this.mainCrossbeamDirection !== newDirection) {
+           this.hardwareConfig.crossbeamHorizontalQuantity = ''
+           this.hardwareConfig.crossbeamHorizontalLength = ''
+           this.hardwareConfig.crossbeamVerticalQuantity = ''
+           this.hardwareConfig.crossbeamVerticalLength = ''
+           this.mainCrossbeamDirection = newDirection
+       }
+
+       if (newDirection === 'Horizontal') {
+          // Horizontal is Main
+          let mainQty = 0
+          if (x < 4) {
+             this.hardwareConfig.crossbeamHorizontalQuantity = 0
+             this.hardwareConfig.crossbeamHorizontalLength = round2(x)
+             this.hardwareConfig.splitHorizontalQuantity = 0
+             this.hardwareConfig.splitHorizontalLength = '0.00'
+             mainQty = 0
+          } else {
+             mainQty = Math.ceil(x / 100)
+             this.hardwareConfig.crossbeamHorizontalQuantity = mainQty
+             this.hardwareConfig.crossbeamHorizontalLength = round2(x)
+          }
+
+          // Vertical is Non-Main (Split by Horizontal Main)
+          const vBaseQty = Math.ceil(y / 100)
+          const divisions = mainQty + 1
+          
+          this.hardwareConfig.crossbeamVerticalQuantity = vBaseQty * divisions
+          this.hardwareConfig.crossbeamVerticalLength = round2(y / divisions)
+
+       } else {
+          // Vertical is Main
+          let mainQty = 0
+          if (y < 4) {
+             this.hardwareConfig.crossbeamVerticalQuantity = 0
+             this.hardwareConfig.crossbeamVerticalLength = round2(y)
+             this.hardwareConfig.splitVerticalQuantity = 0
+             this.hardwareConfig.splitVerticalLength = '0.00'
+             mainQty = 0
+          } else {
+             mainQty = Math.ceil(y / 100)
+             this.hardwareConfig.crossbeamVerticalQuantity = mainQty
+             this.hardwareConfig.crossbeamVerticalLength = round2(y)
+          }
+
+          // Horizontal is Non-Main (Split by Vertical Main)
+          const hBaseQty = Math.ceil(x / 100)
+          const divisions = mainQty + 1
+          
+          this.hardwareConfig.crossbeamHorizontalQuantity = hBaseQty * divisions
+          this.hardwareConfig.crossbeamHorizontalLength = round2(x / divisions)
+       }
+
+       if (this.applicationType === 'Ceiling' && xVal && yVal) {
+          const x = parseFloat(xVal)
+          const y = parseFloat(yVal)
+          if (x < y) {
+             this.$confirm({
+                title: 'Dimension Alert',
+                content: 'X is smaller than Y. Do you want to continue?',
+                onOk() {},
+                onCancel() {}
+             })
+          }
+       }
+     },
     add () {
       // Auto-generate Quote No: Q + YYYYMMDD + - + 3 Random Digits
       const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
