@@ -10,7 +10,7 @@ public class Lcagent {
     private String employId;
     private String companyId;
     private String title;
-    private byte[] logo;
+    private String logo;
     private String address;
     private String currency;
     private String remark;
@@ -82,11 +82,11 @@ public class Lcagent {
         this.title = title;
     }
 
-    public byte[] getLogo() {
+    public String getLogo() {
         return logo;
     }
 
-    public void setLogo(byte[] logo) {
+    public void setLogo(String logo) {
         this.logo = logo;
     }
 

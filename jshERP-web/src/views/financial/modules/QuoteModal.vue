@@ -51,7 +51,7 @@
         <a-col :span="12">
           <a-form-item label="Project">
              <a-select 
-                v-decorator="['ext4']"
+                v-model="projectName"
                 placeholder="Select Project"
                 show-search
                 optionFilterProp="children"
@@ -554,6 +554,37 @@
         </a-col>
 
       </a-row>
+
+      <!-- Attachments Section -->
+      <a-row>
+          <a-col :span="24">
+             <a-card title="Attachments" size="small" style="margin-top: 20px; background: #f5f5f5;">
+               <div style="margin-bottom: 10px;">
+                 <a-upload
+                     name="file"
+                     :action="uploadAction"
+                     :show-upload-list="false"
+                     @change="handleFileChange"
+                     :headers="tokenHeader"
+                 >
+                     <a-button type="primary" size="small" icon="upload">Upload File</a-button>
+                 </a-upload>
+               </div>
+               
+               <a-list v-if="fileList.length > 0" item-layout="horizontal" :data-source="fileList" size="small">
+                  <a-list-item slot="renderItem" slot-scope="item, index">
+                     <a slot="actions" :href="getFileUrl(item.url)" target="_blank">Download</a>
+                     <a slot="actions" style="color: red;" @click="deleteFile(index)">Delete</a>
+                     <a-list-item-meta :description="item.date">
+                        <a slot="title" :href="getFileUrl(item.url)" target="_blank">{{ item.name }}</a>
+                        <a-avatar slot="avatar" icon="file" style="background-color: #faad14" size="small"/>
+                     </a-list-item-meta>
+                  </a-list-item>
+               </a-list>
+               <div v-else style="color: #ccc; font-style: italic;">No attachments.</div>
+             </a-card>
+          </a-col>
+      </a-row>
     </a-form>
     
     <!-- Description Editor Modal -->
@@ -575,6 +606,8 @@ import { getAction } from '@/api/manage'
 import { mapGetters } from 'vuex'
 import pick from 'lodash.pick'
 import moment from "moment"
+import Vue from 'vue'
+import { ACCESS_TOKEN } from "@/store/mutation-types"
 
 export default {
   name: 'QuoteModal',
@@ -589,6 +622,10 @@ export default {
       // Dropdown Data
       agencyList: [],
       projectList: [],
+      projectName: undefined, // Manually bound project name
+      fileList: [], // Attachments
+      uploadAction: '/jshERP-boot/systemConfig/upload?biz=quote',
+      tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
       // Generator State
       selectedProduct: 'LumosCielo',
       productConfigs: {
@@ -1068,16 +1105,6 @@ export default {
             this.isTaxFree = false
         }
          
-        // Load Operator (ext3) if exists, else it will be set on save
-        if(this.model.ext3) {
-           this.form.setFieldsValue({ ext3: this.model.ext3 })
-        }
-
-        // Fetch detailed items if editing
-        if (this.isEdit) {
-           this.loadDetail(this.model.id)
-        }
-        
         // Ensure dropdowns are loaded if editing directly
         if(this.agencyList.length === 0) {
             this.loadDropdownData()
@@ -1174,6 +1201,9 @@ export default {
     close () {
       this.$emit('close')
       this.visible = false
+      this.items = []
+      this.projectName = undefined
+      this.fileList = []
     },
     openDescriptionEditor(record) {
       this.currentEditingItem = record
@@ -1276,10 +1306,50 @@ export default {
       }
     },
     handleEditorOk() {
-      if (this.currentEditingItem) {
-        this.currentEditingItem.description = this.editorContent
-      }
-      this.editorVisible = false
+        if(this.currentEditingItem) {
+            this.currentEditingItem.description = this.editorContent;
+        }
+        this.editorVisible = false;
+        this.editorContent = '';
+        this.currentEditingItem = null;
+    },
+
+    // FILE HANDLING
+    handleFileChange(info) {
+        if (info.file.status === 'done') {
+            const res = info.file.response;
+            if (res && res.code === 200) {
+                const newFile = {
+                    id: Date.now(),
+                    name: info.file.name,
+                    url: res.data,
+                    date: new Date().toLocaleString()
+                };
+                this.fileList.push(newFile);
+                this.$message.success('File uploaded');
+            } else {
+                this.$message.warning(res.data || 'Upload failed');
+            }
+        } else if (info.file.status === 'error') {
+            this.$message.error('Upload error');
+        }
+    },
+
+    deleteFile(index) {
+        this.$confirm({
+            title: 'Delete this file?',
+            okType: 'danger',
+            okText: 'Confirm',
+            onOk: () => {
+                this.fileList.splice(index, 1);
+            }
+        });
+    },
+
+    getFileUrl(path) {
+        if(!path) return '';
+        if(path.startsWith('http')) return path;
+        return "/jshERP-boot/systemConfig/static/" + path;
     },
     handleOk () {
       const that = this
@@ -1288,18 +1358,27 @@ export default {
         console.log('Form Values on Save:', values) 
         if (!err) {
           that.confirmLoading = true
-          let httpurl = ''
-          let method = ''
           
+          let httpurl = ''
+          let method = 'post'
           if (!this.model.id) {
             httpurl = '/lcquote/add'
-            method = 'post'
           } else {
             httpurl = '/lcquote/update'
-            method = 'post'
           }
 
-          const formData = Object.assign({}, this.model, values)
+          // Construct ext4 JSON
+          const ext4Data = {
+              projectName: this.projectName || '',
+              files: this.fileList
+          };
+          
+          let formData = Object.assign(this.model, values, {
+             subtotal: this.subTotal,
+             taxAmount: this.taxAmount,
+             ext5: JSON.stringify(this.items), // Store items in ext5
+             ext4: JSON.stringify(ext4Data)
+          });
           
           // Force include totalAmount in case it was excluded due to 'disabled'
           formData.totalAmount = this.form.getFieldValue('totalAmount')
@@ -1313,13 +1392,8 @@ export default {
           formData.ext2 = this.targetProvince
           
           // Persist Operator (ext3)
-          // If editing, use existing ext3. If new, use current user.
           let currentOperator = this.form.getFieldValue('ext3')
           if (!currentOperator && this.userInfo) {
-             // userInfo getter might be function or object depending on implementation in this project
-             // Based on Logo.vue it seems to be an object: const user = this.userInfo
-             // But UserMenu.vue says const user = this.userInfo()
-             // access safely
              const u = typeof this.userInfo === 'function' ? this.userInfo() : this.userInfo
              if(u && u.username) {
                 currentOperator = u.username
@@ -1334,7 +1408,7 @@ export default {
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            lineTotal: item.lineTotal // Included just in case, though calculated
+            lineTotal: item.lineTotal 
           }))
           
           request({
@@ -1342,7 +1416,7 @@ export default {
             method: method,
             data: formData
           }).then((res) => {
-            if (res === 200 || res === 1 || res.code === 200) { // Check various success responses
+            if (res === 200 || res === 1 || res.code === 200) { 
               that.$message.success('Saved successfully')
               that.$emit('ok')
               that.close()

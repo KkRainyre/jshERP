@@ -160,9 +160,11 @@
 
           <a-form-item label="Upload Logo" :labelCol="{span: 3}" :wrapperCol="{span: 21}">
             <a-upload
-              accept="image/*"
+              name="file"
+              :action="uploadAction"
               :show-upload-list="false"
-              :before-upload="beforeLogoUpload"
+              @change="handleLogoChange"
+              :headers="tokenHeader"
             >
               <a-button icon="upload">Choose Logo</a-button>
             </a-upload>
@@ -186,6 +188,8 @@
   import { addAgency, editAgency, checkAgency } from '@/api/api'
   import { autoJumpNextInput } from "@/utils/util"
   import { mixinDevice } from '@/utils/mixin'
+  import Vue from 'vue'
+  import { ACCESS_TOKEN } from "@/store/mutation-types"
 
   export default {
   name: "AgencyModal",
@@ -206,6 +210,8 @@
   sm: { span: 20 },
 },
   confirmLoading: false,
+  confirmLoading: false,
+  tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
   form: this.$form.createForm(this),
     validatorRules: {
       name: {
@@ -310,20 +316,17 @@
   // autoJumpNextInput('AgencyModal');
 });
 
-  // hydrate logo preview from backend
   if (record.logo) {
-  let base64;
-  if (Array.isArray(record.logo)) {
-  base64 = this.arrayBufferToBase64(record.logo);
-} else {
-  base64 = record.logo;
-}
-  this.logoData = "data:image/png;base64," + base64;
-  this.model.logo = base64;
-} else {
-  this.logoData = null;
-  this.model.logo = null;
-}
+    if (record.logo) {
+       this.logoData = "/jshERP-boot/systemConfig/static/" + record.logo;
+    } else {
+       this.logoData = null;
+    }
+    this.model.logo = record.logo;
+  } else {
+    this.logoData = null;
+    this.model.logo = null;
+  }
 },
 
   close() {
@@ -392,30 +395,26 @@
 
   // ------------ LOGO UPLOAD (FINAL) ------------
 
-  beforeLogoUpload(file) {
-  const reader = new FileReader();
+  handleLogoChange(info) {
+    if (info.file.status === 'done') {
+      const res = info.file.response;
+      if (res && res.code === 200) {
+        this.model.logo = res.data; 
+        
+        this.model.logo = res.data; 
+        this.logoData = "/jshERP-boot/systemConfig/static/" + res.data; 
+        
+        this.$message.success('Logo uploaded successfully');
+      } else {
+        this.$message.warning(res.data || 'Upload failed');
+      }
+    } else if (info.file.status === 'error') {
+      this.$message.error('Upload error');
+    }
+  },
 
-  reader.onload = (e) => {
-  const base64 = e.target.result;
-  this.logoData = base64;                 // full data URL for preview
-  this.model.logo = base64.split(",")[1]; // raw base64 for backend
-};
+  // Deleted legacy beforeLogoUpload
 
-  reader.readAsDataURL(file);
-
-  // block AntD from auto-uploading
-  return false;
-},
-
-  arrayBufferToBase64(buffer) {
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-  binary += String.fromCharCode(bytes[i]);
-}
-  return window.btoa(binary);
-},
 
   cleanCityName(name) {
   if (!name) return "";

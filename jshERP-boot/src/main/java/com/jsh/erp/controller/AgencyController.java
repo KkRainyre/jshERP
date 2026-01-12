@@ -102,32 +102,15 @@ public class AgencyController extends BaseController {
         return returnStr(map, result);
     }
 
-    @PostMapping("/uploadLogo")
-    public String uploadLogo(@RequestParam("id") Long id,
-            @RequestParam("file") MultipartFile file) throws Exception {
-
-        Map<String, Object> map = new HashMap<>();
-
-        if (file.isEmpty()) {
-            map.put("message", "File is empty");
-            return returnJson(map, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
-        }
-
-        byte[] fullImage = file.getBytes();
-
-        // Generate thumbnail 150px wide
-        byte[] thumb = ImageUtil.generateThumbnail(fullImage, 150);
-
-        int res = lcAgencyService.updateLogo(id, fullImage, thumb);
-
-        if (res > 0) {
-            map.put("message", "Upload success");
-            return returnJson(map, ErpInfo.OK.name, ErpInfo.OK.code);
-        } else {
-            map.put("message", "Upload failed");
-            return returnJson(map, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
-        }
-    }
+    /*
+     * @PostMapping("/uploadLogo")
+     * public String uploadLogo(@RequestParam("id") Long id,
+     * 
+     * @RequestParam("file") MultipartFile file) throws Exception {
+     * // ... implementation removed for OSS string storage ...
+     * return null;
+     * }
+     */
 
     @GetMapping("/agent")
     public String getAgentsByCompany(@RequestParam("id") Long companyId,

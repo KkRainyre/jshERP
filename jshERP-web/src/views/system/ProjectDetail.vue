@@ -231,8 +231,31 @@
             <a-tab-pane key="3" tab="Files">
                 <div class="tab-content">
                    <div class="section-block">
-                     <h4>Documents</h4>
-                     <p>No files uploaded.</p>
+                     <div class="section-header">
+                       <h4>Documents</h4>
+                       <a-upload
+                           name="file"
+                           :action="uploadAction"
+                           :show-upload-list="false"
+                           @change="handleFileChange"
+                           :headers="tokenHeader"
+                       >
+                           <a-button type="primary" size="small" icon="upload">Upload File</a-button>
+                       </a-upload>
+                     </div>
+                     <div v-if="fileList.length === 0" style="padding: 20px; color: #ccc;">
+                        No files uploaded.
+                     </div>
+                     <a-list v-else item-layout="horizontal" :data-source="fileList">
+                        <a-list-item slot="renderItem" slot-scope="item, index">
+                           <a slot="actions" :href="getFileUrl(item.url)" target="_blank">Download</a>
+                           <a slot="actions" style="color: red;" @click="deleteFile(index)">Delete</a>
+                           <a-list-item-meta :description="item.date">
+                              <a slot="title" :href="getFileUrl(item.url)" target="_blank">{{ item.name }}</a>
+                              <a-avatar slot="avatar" icon="file" style="background-color: #faad14" />
+                           </a-list-item-meta>
+                        </a-list-item>
+                     </a-list>
                  </div>
               </div>
             </a-tab-pane>
@@ -407,6 +430,8 @@
 <script>
 import { getAction, putAction } from '@/api/manage'
 import LcprojectModal from "./modules/LcprojectModal.vue";
+import Vue from 'vue'
+import { ACCESS_TOKEN } from "@/store/mutation-types"
 
 
 
@@ -434,6 +459,20 @@ export default {
         calls: [],
         meetings: []
       },
+
+      fileList: [], // For ext4 storage - but wait, commData uses ext4?
+      // Re-reading code: commData is from ext4. 
+      // User requirement: "all other files... ext4 fields... store OSS URLs".
+      // Previous view_file showed:
+      // loadComm() { if (this.project.ext4) { try { const parsed = JSON.parse(this.project.ext4); this.commData = ...
+      // So ext4 is ALREADY used for communication logs.
+      // I should modify ext4 structure to include 'files' or use a different field if available?
+      // The user requirement said: "ext4 fields... are prepared to store OSS URLs for other files (likely as JSON arrays)".
+      // It implies ext4 is THE place.
+      // So I will append 'files' to the JSON structure in ext4.
+      
+      uploadAction: '/jshERP-boot/systemConfig/upload?biz=project',
+      tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
 
       quotesList: [],
       tasks: [],
@@ -535,16 +574,24 @@ export default {
              calls: parsed.calls || [],
              meetings: parsed.meetings || []
           };
+          this.fileList = parsed.files || [];
         } catch (e) {
           this.commData = { emails: [], calls: [], meetings: [] };
+          this.fileList = [];
         }
       } else {
          this.commData = { emails: [], calls: [], meetings: [] };
+         this.fileList = [];
       }
     },
     
     async saveCommData() {
-       const jsonStr = JSON.stringify(this.commData);
+       // Merge fileList into the stored JSON
+       const storageObj = {
+           ...this.commData,
+           files: this.fileList
+       };
+       const jsonStr = JSON.stringify(storageObj);
        const formData = { ...this.project, ext4: jsonStr };
        try {
          // LcProjectController update returns int 1 on success usually, but putAction wrapper might handle response structure
@@ -620,6 +667,46 @@ export default {
            this.saveCommData();
         }
       });
+    },
+
+    // FILE HANDLING
+    handleFileChange(info) {
+        if (info.file.status === 'done') {
+            const res = info.file.response;
+            if (res && res.code === 200) {
+                const newFile = {
+                    id: Date.now(),
+                    name: info.file.name,
+                    url: res.data,
+                    date: new Date().toLocaleString()
+                };
+                this.fileList.push(newFile);
+                this.$message.success('File uploaded');
+                this.saveCommData(); // Re-use saveCommData as it saves ext4
+            } else {
+                this.$message.warning(res.data || 'Upload failed');
+            }
+        } else if (info.file.status === 'error') {
+            this.$message.error('Upload error');
+        }
+    },
+
+    deleteFile(index) {
+        this.$confirm({
+            title: 'Delete this file?',
+            okType: 'danger',
+            okText: 'Confirm',
+            onOk: () => {
+                this.fileList.splice(index, 1);
+                this.saveCommData();
+            }
+        });
+    },
+
+    getFileUrl(path) {
+        if(!path) return '';
+        if(path.startsWith('http')) return path;
+        return "/jshERP-boot/systemConfig/static/" + path;
     },
 
     // TASK Management

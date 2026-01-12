@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import com.jsh.erp.exception.BusinessRunTimeException;
-import com.jsh.erp.utils.BaseResponseInfo;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -72,10 +71,13 @@ public class LcagentController {
         return lcagentService.batchDeleteAgent(ids);
     }
 
-    @PostMapping("/updateLogo/{id}")
-    public int updateLogo(@PathVariable Long id, @RequestBody byte[] logo) {
-        return lcagentService.updateLogo(id, logo);
-    }
+    /*
+     * @PostMapping("/updateLogo/{id}")
+     * public int updateLogo(@PathVariable Long id, @RequestBody byte[] logo) {
+     * // return lcagentService.updateLogo(id, logo);
+     * return 0;
+     * }
+     */
 
     @PostMapping("/importAgent")
     public BaseResponseInfo importAgent(MultipartFile file,

@@ -136,14 +136,17 @@ public class LcagentService {
     // ---------------------------------------------------------------------
     // UPDATE LOGO
     // ---------------------------------------------------------------------
-    public int updateLogo(Long id, byte[] logo) {
-        try {
-            return lcagentMapper.updateLogo(id, logo);
-        } catch (Exception e) {
-            JshException.writeFail(logger, e);
-            return -1;
-        }
-    }
+    /*
+     * public int updateLogo(Long id, byte[] logo) {
+     * // try {
+     * // return lcagentMapper.updateLogo(id, logo);
+     * // } catch (Exception e) {
+     * // JshException.writeFail(logger, e);
+     * // return -1;
+     * // }
+     * return 0;
+     * }
+     */
 
     // ---------------------------------------------------------------------
     // IMPORT

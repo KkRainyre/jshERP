@@ -149,9 +149,12 @@ public class AgencyService {
         return lcagencyMapper.countAgentsByCompany(companyId);
     }
 
-    public int updateLogo(Long id, byte[] fullLogo, byte[] thumb) {
-        return lcAgencyMapper.updateLogo(id, fullLogo, thumb);
-    }
+    /*
+     * public int updateLogo(Long id, byte[] fullLogo, byte[] thumb) {
+     * // return lcAgencyMapper.updateLogo(id, fullLogo, thumb);
+     * return 0;
+     * }
+     */
 
     /**
      * Check file extension
