@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 /**
  * STS credentials provider that calls AssumeRole and caches temporary credentials.
@@ -40,6 +41,18 @@ public class StsCredentialsProvider {
     private volatile CachedCredentials cached = null;
     private final ReentrantLock lock = new ReentrantLock();
 
+    // Factory to create IAcsClient from a profile. Can be injected for testing.
+    private final Function<IClientProfile, IAcsClient> clientFactory;
+
+    public StsCredentialsProvider() {
+        this(profile -> new DefaultAcsClient(profile));
+    }
+
+    // package-private constructor for tests
+    StsCredentialsProvider(Function<IClientProfile, IAcsClient> clientFactory) {
+        this.clientFactory = clientFactory;
+    }
+
     @PostConstruct
     public void init() {
         logger.info("StsCredentialsProvider initialized. roleArn={}", roleArn);
@@ -62,22 +75,43 @@ public class StsCredentialsProvider {
             // call AssumeRole
             logger.debug("Requesting new STS credentials for role: {}", roleArn);
             IClientProfile profile = DefaultProfile.getProfile("", accessKeyId, accessKeySecret);
-            IAcsClient client = new DefaultAcsClient(profile);
+            IAcsClient client = clientFactory.apply(profile);
 
             AssumeRoleRequest request = new AssumeRoleRequest();
             request.setRoleArn(roleArn);
             request.setRoleSessionName(roleSessionName);
-            request.setDurationSeconds(durationSeconds);
+            request.setDurationSeconds(durationSeconds.longValue());
 
             AssumeRoleResponse response = client.getAcsResponse(request);
 
             String tmpAccessKeyId = response.getCredentials().getAccessKeyId();
             String tmpSecret = response.getCredentials().getAccessKeySecret();
             String token = response.getCredentials().getSecurityToken();
-            long expirationEpoch = response.getCredentials().getExpiration().getTime();
+
+            // expiration may be returned as a Date or as a String depending on SDK version
+            long expirationEpoch;
+            Object expObj = response.getCredentials().getExpiration();
+            if (expObj instanceof java.util.Date) {
+                expirationEpoch = ((java.util.Date) expObj).getTime();
+            } else if (expObj instanceof String) {
+                // parse ISO8601-like string
+                expirationEpoch = javax.xml.bind.DatatypeConverter.parseDateTime((String) expObj).getTimeInMillis();
+            } else {
+                expirationEpoch = System.currentTimeMillis() + (durationSeconds.longValue() * 1000L);
+            }
 
             cached = new CachedCredentials(tmpAccessKeyId, tmpSecret, token, expirationEpoch);
-            logger.info("Obtained STS credentials, expireAt={}", response.getCredentials().getExpiration());
+            logger.info("Obtained STS credentials, expireAt={}", expObj);
+
+            // Try to shutdown the client if possible
+            try {
+                if (client instanceof DefaultAcsClient) {
+                    ((DefaultAcsClient) client).shutdown();
+                }
+            } catch (Throwable ex) {
+                logger.debug("Failed to shutdown IAcsClient: {}", ex.getMessage());
+            }
+
             return cached.toCredentials();
         } finally {
             lock.unlock();
