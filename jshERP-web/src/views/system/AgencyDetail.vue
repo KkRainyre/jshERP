@@ -23,9 +23,10 @@
                 class="logo-rect-container"
               >
                 <img
-                  :src="'data:image/jpeg;base64,' + agency.logo"
+                  :src="agencyLogoUrl || 'data:image/jpeg;base64,' + agency.logo"
                   class="hover-zoom-img"
                   style="width: 100%; height: 100%; object-fit: contain"
+                  @error="$event.target.src='data:image/jpeg;base64,' + (agency.logoThumb || agency.logo)"
                 />
               </div>
 
@@ -40,7 +41,7 @@
               
               <!-- Large Preview on Hover -->
               <div class="logo-large-preview" v-if="agency.logo">
-                <img :src="'data:image/jpeg;base64,' + agency.logo" style="width: 100%;" />
+                <img :src="agencyLogoUrl || 'data:image/jpeg;base64,' + agency.logo" style="width: 100%;" />
               </div>
               
               <div class="online-status"></div>
@@ -413,6 +414,7 @@ export default {
       agencyId: null,
       loading: false,
       agency: {},
+      agencyLogoUrl: '',
       activities: [],
       notesVisible: false,
       notesContent: '',
@@ -461,9 +463,28 @@ export default {
       const res = await getAction('/agency/info', { id: this.agencyId });
       if (res && res.code === 200 && res.data && res.data.info) {
         this.agency = res.data.info;
+        this.resolveLogoUrl(); 
         this.loadProjects();
       }
     },
+
+    resolveLogoUrl() {
+       if (this.agency.logo && !this.agency.logo.startsWith('http')) {
+           // Use OSS API to get consistent previewUrl
+           getAction('/api/oss/urls', { objectKey: this.agency.logo, fileName: '' }).then(res => {
+              if (res && res.previewUrl) {
+                 this.agencyLogoUrl = res.previewUrl;
+              } else if (res) {
+                 this.agencyLogoUrl = res.previewUrl || res || '';
+              }
+           }).catch(err => {
+              console.error('Failed to get agency logo preview', err);
+           })
+       } else if (this.agency.logo && this.agency.logo.startsWith('http')) {
+           this.agencyLogoUrl = this.agency.logo;
+       }
+    },
+
     async loadActivities() {
       this.loading = true;
       try {

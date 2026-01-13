@@ -23,6 +23,7 @@ public class LcAgency {
 
     private String logo; // Stores OSS URL
     private byte[] logoThumb; // LONGBLOB
+    private String logoUrl; // Signed URL for logo
 
     private String tier;
     private String shippingAcc;
@@ -169,6 +170,14 @@ public class LcAgency {
 
     public void setLogoThumb(byte[] logoThumb) {
         this.logoThumb = logoThumb;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public String getTier() {

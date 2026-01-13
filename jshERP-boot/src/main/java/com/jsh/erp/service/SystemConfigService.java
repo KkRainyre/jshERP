@@ -2,12 +2,9 @@ package com.jsh.erp.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.CopyObjectResult;
-import com.aliyun.oss.model.PutObjectRequest;
 import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.datasource.entities.SystemConfig;
 import com.jsh.erp.datasource.entities.SystemConfigExample;
@@ -34,8 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,123 +52,131 @@ public class SystemConfigService {
     @Resource
     private LogService logService;
 
-    @Value(value="${file.uploadType}")
+    @Value(value = "${file.uploadType}")
     private Long fileUploadType;
 
-    @Value(value="${file.path}")
+    @Value(value = "${file.path}")
     private String filePath;
 
     private static String DELETED = "deleted";
 
-    public SystemConfig getSystemConfig(long id)throws Exception {
-        SystemConfig result=null;
-        try{
-            result=systemConfigMapper.selectByPrimaryKey(id);
-        }catch(Exception e){
+    public SystemConfig getSystemConfig(long id) throws Exception {
+        SystemConfig result = null;
+        try {
+            result = systemConfigMapper.selectByPrimaryKey(id);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         return result;
     }
 
-    public List<SystemConfig> getSystemConfig()throws Exception {
+    public List<SystemConfig> getSystemConfig() throws Exception {
         SystemConfigExample example = new SystemConfigExample();
         example.createCriteria().andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-        List<SystemConfig> list=null;
-        try{
-            list=systemConfigMapper.selectByExample(example);
-        }catch(Exception e){
+        List<SystemConfig> list = null;
+        try {
+            list = systemConfigMapper.selectByExample(example);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         return list;
     }
-    public List<SystemConfig> select(String companyName)throws Exception {
-        List<SystemConfig> list=null;
-        try{
+
+    public List<SystemConfig> select(String companyName) throws Exception {
+        List<SystemConfig> list = null;
+        try {
             PageUtils.startPage();
-            list=systemConfigMapperEx.selectByConditionSystemConfig(companyName);
-        }catch(Exception e){
+            list = systemConfigMapperEx.selectByConditionSystemConfig(companyName);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
         return list;
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int insertSystemConfig(JSONObject obj, HttpServletRequest request) throws Exception{
+    public int insertSystemConfig(JSONObject obj, HttpServletRequest request) throws Exception {
         SystemConfig systemConfig = JSONObject.parseObject(obj.toJSONString(), SystemConfig.class);
-        int result=0;
-        try{
-            result=systemConfigMapper.insertSelective(systemConfig);
-            String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName())?systemConfig.getCompanyName():"配置信息";
-            logService.insertLogWithUserId(userService.getCurrentUser().getId(), userService.getCurrentUser().getTenantId(), "系统配置",
+        int result = 0;
+        try {
+            result = systemConfigMapper.insertSelective(systemConfig);
+            String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName()) ? systemConfig.getCompanyName()
+                    : "配置信息";
+            logService.insertLogWithUserId(userService.getCurrentUser().getId(),
+                    userService.getCurrentUser().getTenantId(), "系统配置",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(logInfo).toString(), request);
-        }catch(Exception e){
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int updateSystemConfig(JSONObject obj, HttpServletRequest request) throws Exception{
+    public int updateSystemConfig(JSONObject obj, HttpServletRequest request) throws Exception {
         SystemConfig systemConfig = JSONObject.parseObject(obj.toJSONString(), SystemConfig.class);
-        int result=0;
-        try{
+        int result = 0;
+        try {
             result = systemConfigMapper.updateByPrimaryKeySelective(systemConfig);
-            String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName())?systemConfig.getCompanyName():"配置信息";
-            logService.insertLogWithUserId(userService.getCurrentUser().getId(), userService.getCurrentUser().getTenantId(), "系统配置",
+            String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName()) ? systemConfig.getCompanyName()
+                    : "配置信息";
+            logService.insertLogWithUserId(userService.getCurrentUser().getId(),
+                    userService.getCurrentUser().getTenantId(), "系统配置",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(logInfo).toString(), request);
-        }catch(Exception e){
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int deleteSystemConfig(Long id, HttpServletRequest request)throws Exception {
+    public int deleteSystemConfig(Long id, HttpServletRequest request) throws Exception {
         return batchDeleteSystemConfigByIds(id.toString());
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int batchDeleteSystemConfig(String ids, HttpServletRequest request)throws Exception {
+    public int batchDeleteSystemConfig(String ids, HttpServletRequest request) throws Exception {
         return batchDeleteSystemConfigByIds(ids);
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public int batchDeleteSystemConfigByIds(String ids)throws Exception {
+    public int batchDeleteSystemConfigByIds(String ids) throws Exception {
         logService.insertLog("系统配置",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_DELETE).append(ids).toString(),
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
-        User userInfo=userService.getCurrentUser();
-        String [] idArray=ids.split(",");
-        int result=0;
-        try{
-            result = systemConfigMapperEx.batchDeleteSystemConfigByIds(new Date(), userInfo == null ? null : userInfo.getId(), idArray);
-        }catch(Exception e){
+        User userInfo = userService.getCurrentUser();
+        String[] idArray = ids.split(",");
+        int result = 0;
+        try {
+            result = systemConfigMapperEx.batchDeleteSystemConfigByIds(new Date(),
+                    userInfo == null ? null : userInfo.getId(), idArray);
+        } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
         return result;
     }
 
-    public int checkIsNameExist(Long id, String name) throws Exception{
+    public int checkIsNameExist(Long id, String name) throws Exception {
         SystemConfigExample example = new SystemConfigExample();
-        example.createCriteria().andIdNotEqualTo(id).andCompanyNameEqualTo(name).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-        List<SystemConfig> list =null;
-        try{
-            list=systemConfigMapper.selectByExample(example);
-        }catch(Exception e){
+        example.createCriteria().andIdNotEqualTo(id).andCompanyNameEqualTo(name)
+                .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<SystemConfig> list = null;
+        try {
+            list = systemConfigMapper.selectByExample(example);
+        } catch (Exception e) {
             JshException.readFail(logger, e);
         }
-        return list==null?0:list.size();
+        return list == null ? 0 : list.size();
     }
 
     /**
      * 本地文件上传
-     * @param mf 文件
-     * @param bizPath  自定义路径
+     * 
+     * @param mf      文件
+     * @param bizPath 自定义路径
      * @return
      */
     public String uploadLocal(MultipartFile mf, String bizPath, HttpServletRequest request) throws Exception {
         try {
-            if(StringUtil.isEmpty(bizPath)){
+            if (StringUtil.isEmpty(bizPath)) {
                 bizPath = "";
             }
             // Validate bizPath to prevent directory traversal
@@ -184,7 +188,7 @@ public class SystemConfigService {
             bizPath = bizPath + File.separator + tenantId;
             String ctxPath = filePath;
             String fileName = null;
-            File file = new File(ctxPath + File.separator + bizPath + File.separator );
+            File file = new File(ctxPath + File.separator + bizPath + File.separator);
             if (!file.exists()) {
                 file.mkdirs();// 创建文件根目录
             }
@@ -192,8 +196,9 @@ public class SystemConfigService {
             orgName = FileUtils.getFileName(orgName);
 
             // Validate file extension to allow only specific types
-            String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt",".doc",".docx",".xls",".xlsx",
-                    ".ppt",".pptx",".zip",".rar",".mp3",".mp4",".avi"};
+            String[] allowedExtensions = { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt", ".doc", ".docx", ".xls",
+                    ".xlsx",
+                    ".ppt", ".pptx", ".zip", ".rar", ".mp3", ".mp4", ".avi" };
             boolean isValidExtension = false;
             for (String ext : allowedExtensions) {
                 if (orgName.toLowerCase().endsWith(ext)) {
@@ -205,10 +210,11 @@ public class SystemConfigService {
                 throw new IllegalArgumentException("Invalid file type");
             }
 
-            if(orgName.contains(".")){
-                fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
-            }else{
-                fileName = orgName+ "_" + System.currentTimeMillis();
+            if (orgName.contains(".")) {
+                fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis()
+                        + orgName.substring(orgName.indexOf("."));
+            } else {
+                fileName = orgName + "_" + System.currentTimeMillis();
             }
             String savePath = file.getPath() + File.separator + fileName;
             File savefile = new File(savePath);
@@ -216,9 +222,9 @@ public class SystemConfigService {
 
             // 返回路径
             String dbpath = null;
-            if(StringUtil.isNotEmpty(bizPath)){
+            if (StringUtil.isNotEmpty(bizPath)) {
                 dbpath = bizPath + File.separator + fileName;
-            }else{
+            } else {
                 dbpath = fileName;
             }
             if (dbpath.contains("\\")) {
@@ -231,14 +237,18 @@ public class SystemConfigService {
         return "";
     }
 
+    @Resource
+    private OssUtils ossUtils;
+
     /**
      * 阿里Oss文件上传
-     * @param mf 文件
-     * @param bizPath  自定义路径
+     *
+     * @param mf      文件
+     * @param bizPath 自定义路径
      * @return
      */
     public String uploadAliOss(MultipartFile mf, String bizPath, HttpServletRequest request) throws Exception {
-        if(StringUtil.isEmpty(bizPath)){
+        if (StringUtil.isEmpty(bizPath)) {
             bizPath = "";
         }
         // Validate bizPath to prevent directory traversal
@@ -248,18 +258,18 @@ public class SystemConfigService {
         String token = request.getHeader("X-Access-Token");
         Long tenantId = Tools.getTenantIdByToken(token);
         bizPath = bizPath + "/" + tenantId;
-        String endpoint = platformConfigService.getPlatformConfigByKey("aliOss_endpoint").getPlatformValue();
-        String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
-        String accessKeySecret = platformConfigService.getPlatformConfigByKey("aliOss_accessKeySecret").getPlatformValue();
-        String bucketName = platformConfigService.getPlatformConfigByKey("aliOss_bucketName").getPlatformValue();
+
+        // Configuration is now handled by OssUtils component
+
         // 填写Object完整路径，完整路径中不能包含Bucket名称，例如exampledir/exampleobject.txt。
         String fileName = "";
         String orgName = mf.getOriginalFilename();// 获取文件名
         orgName = FileUtils.getFileName(orgName);
 
         // Validate file extension to allow only specific types
-        String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt",".doc",".docx",".xls",".xlsx",
-                ".ppt",".pptx",".zip",".rar",".mp3",".mp4",".avi"};
+        String[] allowedExtensions = { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt", ".doc", ".docx", ".xls",
+                ".xlsx",
+                ".ppt", ".pptx", ".zip", ".rar", ".mp3", ".mp4", ".avi" };
         boolean isValidExtension = false;
         for (String ext : allowedExtensions) {
             if (orgName.toLowerCase().endsWith(ext)) {
@@ -271,64 +281,55 @@ public class SystemConfigService {
             throw new IllegalArgumentException("Invalid file type");
         }
 
-        if(orgName.contains(".")){
-            fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
-        }else{
-            fileName = orgName+ "_" + System.currentTimeMillis();
+        if (orgName.contains(".")) {
+            fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis()
+                    + orgName.substring(orgName.indexOf("."));
+        } else {
+            fileName = orgName + "_" + System.currentTimeMillis();
         }
-        String filePathStr = StringUtil.isNotEmpty(filePath)? filePath.substring(1):"";
+        String filePathStr = StringUtil.isNotEmpty(filePath) ? filePath.substring(1) : "";
         String objectName = filePathStr + "/" + bizPath + "/" + fileName;
         String smallObjectName = filePathStr + "-small/" + bizPath + "/" + fileName;
-        // 如果未指定本地路径，则默认从示例程序所属项目对应本地路径中上传文件流。
-        byte [] byteArr = mf.getBytes();
 
-        // 创建OSSClient实例。
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        byte[] byteArr = mf.getBytes();
+        InputStream inputStream = new ByteArrayInputStream(byteArr);
 
-        try {
-            // 保存原文件
-            InputStream inputStream = new ByteArrayInputStream(byteArr);
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, inputStream);
-            ossClient.putObject(putObjectRequest);
-            // 如果是图片-保存缩略图
-            int index = fileName.lastIndexOf(".");
-            String ext = fileName.substring(index + 1);
-            if(ext.contains("gif") || ext.contains("jpg") || ext.contains("jpeg") || ext.contains("png")
-                    || ext.contains("GIF") || ext.contains("JPG") || ext.contains("JPEG") || ext.contains("PNG")) {
-                String fileUrl = getFileUrlAliOss(bizPath + "/" + fileName);
-                URL url = new URL(fileUrl);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5 * 1000);
-                InputStream imgInputStream = conn.getInputStream();// 通过输入流获取图片数据
-                BufferedImage smallImage = getImageMini(imgInputStream, 80);
-                ByteArrayOutputStream bs = new ByteArrayOutputStream();
-                ImageOutputStream imOut = ImageIO.createImageOutputStream(bs);
-                ImageIO.write(smallImage, ext, imOut);
-                InputStream isImg = new ByteArrayInputStream(bs.toByteArray());
-                PutObjectRequest putSmallObjectRequest = new PutObjectRequest(bucketName, smallObjectName, isImg);
-                ossClient.putObject(putSmallObjectRequest);
-            }
-            // 返回路径
-            return bizPath + "/" + fileName;
-        } catch (OSSException oe) {
-            logger.error("Caught an OSSException, which means your request made it to OSS, "
-                    + "but was rejected with an error response for some reason.");
-            logger.error("Error Message:" + oe.getErrorMessage());
-            logger.error("Error Code:" + oe.getErrorCode());
-            logger.error("Request ID:" + oe.getRequestId());
-            logger.error("Host ID:" + oe.getHostId());
-        } catch (ClientException ce) {
-            logger.error("Caught an ClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with OSS, "
-                    + "such as not being able to access the network.");
-            System.out.println("Error Message:" + ce.getMessage());
-        } finally {
-            if (ossClient != null) {
-                ossClient.shutdown();
-            }
+        // Main file upload via OssUtils
+        String objectKey = ossUtils.upload(
+                inputStream,
+                byteArr.length,
+                mf.getContentType(),
+                objectName);
+        // Thumbnail logic
+        int index = fileName.lastIndexOf(".");
+        String ext = fileName.substring(index + 1);
+        if (ext.contains("gif") || ext.contains("jpg") || ext.contains("jpeg") || ext.contains("png")
+                || ext.contains("GIF") || ext.contains("JPG") || ext.contains("JPEG") || ext.contains("PNG")) {
+
+            InputStream imgInputStream = new ByteArrayInputStream(byteArr);
+            BufferedImage smallImage = getImageMini(imgInputStream, 80);
+            ByteArrayOutputStream bs = new ByteArrayOutputStream();
+            ImageOutputStream imOut = ImageIO.createImageOutputStream(bs);
+            ImageIO.write(smallImage, ext, imOut);
+
+            byte[] smallByteArr = bs.toByteArray();
+            InputStream isImg = new ByteArrayInputStream(smallByteArr);
+
+            // Upload thumbnail via OssUtils
+            ossUtils.upload(isImg, smallByteArr.length, mf.getContentType(), smallObjectName);
         }
-        return "";
+
+        // Return the full URL of the main file
+        // Generate signed URL for immediate preview (valid for 10 years to satisfy
+        // "save in db")
+        String signedUrl = ossUtils.generatePreviewUrl(objectKey, 315360000); // 10 years
+
+        // Construct JSON response
+        JSONObject json = new JSONObject();
+        json.put("objectKey", objectKey);
+        json.put("signedUrl", signedUrl);
+
+        return json.toJSONString();
     }
 
     public String getFileUrlLocal(String imgPath) {
@@ -342,13 +343,14 @@ public class SystemConfigService {
 
     /**
      * 逻辑删除文件
+     * 
      * @param pathList
      */
     public void deleteFileByPathList(List<String> pathList) throws Exception {
-        if(fileUploadType == 1) {
-            //本地
-            for(String pathStr: pathList) {
-                if(StringUtil.isNotEmpty(pathStr)) {
+        if (fileUploadType == 1) {
+            // 本地
+            for (String pathStr : pathList) {
+                if (StringUtil.isNotEmpty(pathStr)) {
                     String[] pathArr = pathStr.split(",");
                     for (String path : pathArr) {
                         // 提取文件的路径
@@ -379,17 +381,18 @@ public class SystemConfigService {
                     }
                 }
             }
-        } else if(fileUploadType == 2) {
-            //oss
+        } else if (fileUploadType == 2) {
+            // oss
             String endpoint = platformConfigService.getPlatformConfigByKey("aliOss_endpoint").getPlatformValue();
             String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
-            String accessKeySecret = platformConfigService.getPlatformConfigByKey("aliOss_accessKeySecret").getPlatformValue();
+            String accessKeySecret = platformConfigService.getPlatformConfigByKey("aliOss_accessKeySecret")
+                    .getPlatformValue();
             String bucketName = platformConfigService.getPlatformConfigByKey("aliOss_bucketName").getPlatformValue();
-            for(String pathStr: pathList) {
-                if(StringUtil.isNotEmpty(pathStr)) {
+            for (String pathStr : pathList) {
+                if (StringUtil.isNotEmpty(pathStr)) {
                     String[] pathArr = pathStr.split(",");
                     for (String path : pathArr) {
-                        if(StringUtil.isNotEmpty(path)) {
+                        if (StringUtil.isNotEmpty(path)) {
                             // 创建OSSClient实例。
                             OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
                             try {
@@ -399,7 +402,8 @@ public class SystemConfigService {
                                 String destinationObjectKey = DELETED + "/list/" + sourceObjectKey;
                                 String destinationSmallObjectKey = DELETED + "/list/" + sourceSmallObjectKey;
                                 this.copySourceToDest(ossClient, bucketName, sourceObjectKey, destinationObjectKey);
-                                this.copySourceToDest(ossClient, bucketName, sourceSmallObjectKey, destinationSmallObjectKey);
+                                this.copySourceToDest(ossClient, bucketName, sourceSmallObjectKey,
+                                        destinationSmallObjectKey);
                             } catch (Exception e) {
                                 logger.error(e.getMessage());
                             } finally {
@@ -419,12 +423,14 @@ public class SystemConfigService {
      *
      * @param ossClient
      * @param bucketName
-     * @param sourceObjectKey 源文件路径，包括目录和文件名
+     * @param sourceObjectKey      源文件路径，包括目录和文件名
      * @param destinationObjectKey 目标文件路径，包括新目录和文件名
      */
-    public void copySourceToDest(OSS ossClient, String bucketName, String sourceObjectKey, String destinationObjectKey) {
+    public void copySourceToDest(OSS ossClient, String bucketName, String sourceObjectKey,
+            String destinationObjectKey) {
         // 复制文件
-        CopyObjectResult copyResult = ossClient.copyObject(bucketName, sourceObjectKey, bucketName, destinationObjectKey);
+        CopyObjectResult copyResult = ossClient.copyObject(bucketName, sourceObjectKey, bucketName,
+                destinationObjectKey);
         // 确认复制成功
         if (copyResult != null && copyResult.getETag() != null) {
             logger.info("文件复制成功，ETag: " + copyResult.getETag());
@@ -437,7 +443,7 @@ public class SystemConfigService {
     }
 
     public String getDirByPath(String path) {
-        if(path.lastIndexOf("/")>-1) {
+        if (path.lastIndexOf("/") > -1) {
             return path.substring(0, path.lastIndexOf("/"));
         } else {
             return null;
@@ -446,16 +452,16 @@ public class SystemConfigService {
 
     public BufferedImage getImageMini(InputStream inputStream, int w) throws Exception {
         BufferedImage img = ImageIO.read(inputStream);
-        //获取图片的长和宽
+        // 获取图片的长和宽
         int width = img.getWidth();
         int height = img.getHeight();
         int tempw = 0;
         int temph = 0;
-        if(width>height){
+        if (width > height) {
             tempw = w;
-            temph = height* w/width;
-        }else{
-            tempw = w*width/height;
+            temph = height * w / width;
+        } else {
+            tempw = w * width / height;
             temph = w;
         }
         Image _img = img.getScaledInstance(tempw, temph, Image.SCALE_DEFAULT);
@@ -468,15 +474,16 @@ public class SystemConfigService {
 
     /**
      * 获取仓库开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getDepotFlag() throws Exception {
         boolean depotFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getDepotFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 depotFlag = true;
             }
         }
@@ -485,15 +492,16 @@ public class SystemConfigService {
 
     /**
      * 获取客户开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getCustomerFlag() throws Exception {
         boolean customerFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getCustomerFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 customerFlag = true;
             }
         }
@@ -502,15 +510,16 @@ public class SystemConfigService {
 
     /**
      * 获取负库存开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getMinusStockFlag() throws Exception {
         boolean minusStockFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getMinusStockFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 minusStockFlag = true;
             }
         }
@@ -519,15 +528,16 @@ public class SystemConfigService {
 
     /**
      * 获取更新单价开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getUpdateUnitPriceFlag() throws Exception {
         boolean updateUnitPriceFlag = true;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getUpdateUnitPriceFlag();
-            if(("0").equals(flag)) {
+            if (("0").equals(flag)) {
                 updateUnitPriceFlag = false;
             }
         }
@@ -536,15 +546,16 @@ public class SystemConfigService {
 
     /**
      * 获取超出关联单据开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getOverLinkBillFlag() throws Exception {
         boolean overLinkBillFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getOverLinkBillFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 overLinkBillFlag = true;
             }
         }
@@ -553,15 +564,16 @@ public class SystemConfigService {
 
     /**
      * 获取强审核开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getForceApprovalFlag() throws Exception {
         boolean forceApprovalFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getForceApprovalFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 forceApprovalFlag = true;
             }
         }
@@ -570,15 +582,16 @@ public class SystemConfigService {
 
     /**
      * 获取多级审核开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getMultiLevelApprovalFlag() throws Exception {
         boolean multiLevelApprovalFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getMultiLevelApprovalFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 multiLevelApprovalFlag = true;
             }
         }
@@ -587,15 +600,16 @@ public class SystemConfigService {
 
     /**
      * 获取出入库管理开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getInOutManageFlag() throws Exception {
         boolean inOutManageFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getInOutManageFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 inOutManageFlag = true;
             }
         }
@@ -604,15 +618,16 @@ public class SystemConfigService {
 
     /**
      * 获取移动平均价开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getMoveAvgPriceFlag() throws Exception {
         boolean moveAvgPriceFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getMoveAvgPriceFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 moveAvgPriceFlag = true;
             }
         }
@@ -621,15 +636,16 @@ public class SystemConfigService {
 
     /**
      * 获取客户静态单价开关
+     * 
      * @return
      * @throws Exception
      */
     public boolean getCustomerStaticPriceFlag() throws Exception {
         boolean customerStaticPriceFlag = false;
         List<SystemConfig> list = getSystemConfig();
-        if(list.size()>0) {
+        if (list.size() > 0) {
             String flag = list.get(0).getCustomerStaticPriceFlag();
-            if(("1").equals(flag)) {
+            if (("1").equals(flag)) {
                 customerStaticPriceFlag = true;
             }
         }
@@ -638,6 +654,7 @@ public class SystemConfigService {
 
     /**
      * Excel导出统一方法
+     * 
      * @param title
      * @param head
      * @param tip
@@ -645,16 +662,17 @@ public class SystemConfigService {
      * @param response
      * @throws Exception
      */
-    public void exportExcelByParam(String title, String head, String tip, JSONArray arr, HttpServletResponse response) throws Exception {
+    public void exportExcelByParam(String title, String head, String tip, JSONArray arr, HttpServletResponse response)
+            throws Exception {
         List<String> nameList = StringUtil.strToStringList(head);
         String[] names = StringUtil.listToStringArray(nameList);
         List<Object[]> objects = new ArrayList<>();
         if (null != arr) {
-            for (Object object: arr) {
+            for (Object object : arr) {
                 List<Object> list = (List<Object>) object;
                 Object[] objs = new Object[names.length];
                 for (int i = 0; i < list.size(); i++) {
-                    if(null != list.get(i)) {
+                    if (null != list.get(i)) {
                         objs[i] = list.get(i);
                     }
                 }

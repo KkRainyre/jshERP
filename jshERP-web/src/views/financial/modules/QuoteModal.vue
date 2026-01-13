@@ -624,7 +624,7 @@ export default {
       projectList: [],
       projectName: undefined, // Manually bound project name
       fileList: [], // Attachments
-      uploadAction: '/jshERP-boot/systemConfig/upload?biz=quote',
+      uploadAction: window._CONFIG['domianURL'] + '/systemConfig/upload?biz=quote',
       tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
       // Generator State
       selectedProduct: 'LumosCielo',

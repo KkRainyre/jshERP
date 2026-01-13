@@ -471,7 +471,7 @@ export default {
       // It implies ext4 is THE place.
       // So I will append 'files' to the JSON structure in ext4.
       
-      uploadAction: '/jshERP-boot/systemConfig/upload?biz=project',
+      uploadAction: window._CONFIG['domianURL'] + '/systemConfig/upload?biz=project',
       tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
 
       quotesList: [],

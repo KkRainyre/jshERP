@@ -35,37 +35,41 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 
 /**
  * Description
+ * 
  * @Author: jishenghua
  * @Date: 2021-3-13 0:01
  */
 @RestController
 @RequestMapping(value = "/systemConfig")
-@Api(tags = {"系统参数"})
+@Api(tags = { "系统参数" })
 public class SystemConfigController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(SystemConfigController.class);
 
     @Resource
     private SystemConfigService systemConfigService;
 
-    @Value(value="${file.uploadType}")
+    @Resource
+    private OssUtils ossUtils;
+
+    @Value(value = "${file.uploadType}")
     private Long fileUploadType;
 
-    @Value(value="${file.path}")
+    @Value(value = "${file.path}")
     private String filePath;
 
-    @Value(value="${spring.servlet.multipart.max-file-size}")
+    @Value(value = "${spring.servlet.multipart.max-file-size}")
     private Long maxFileSize;
 
-    @Value(value="${spring.servlet.multipart.max-request-size}")
+    @Value(value = "${spring.servlet.multipart.max-request-size}")
     private Long maxRequestSize;
 
     @GetMapping(value = "/info")
     @ApiOperation(value = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
-                          HttpServletRequest request) throws Exception {
+            HttpServletRequest request) throws Exception {
         SystemConfig systemConfig = systemConfigService.getSystemConfig(id);
         Map<String, Object> objectMap = new HashMap<>();
-        if(systemConfig != null) {
+        if (systemConfig != null) {
             objectMap.put("info", systemConfig);
             return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
         } else {
@@ -76,7 +80,7 @@ public class SystemConfigController extends BaseController {
     @GetMapping(value = "/list")
     @ApiOperation(value = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
-                                 HttpServletRequest request)throws Exception {
+            HttpServletRequest request) throws Exception {
         String companyName = StringUtil.getInfo(search, "companyName");
         List<SystemConfig> list = systemConfigService.select(companyName);
         return getDataTable(list);
@@ -84,7 +88,7 @@ public class SystemConfigController extends BaseController {
 
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
-    public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+    public String addResource(@RequestBody JSONObject obj, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int insert = systemConfigService.insertSystemConfig(obj, request);
         return returnStr(objectMap, insert);
@@ -92,7 +96,7 @@ public class SystemConfigController extends BaseController {
 
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
-    public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+    public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int update = systemConfigService.updateSystemConfig(obj, request);
         return returnStr(objectMap, update);
@@ -100,7 +104,7 @@ public class SystemConfigController extends BaseController {
 
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
-    public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+    public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.deleteSystemConfig(id, request);
         return returnStr(objectMap, delete);
@@ -108,7 +112,7 @@ public class SystemConfigController extends BaseController {
 
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
-    public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+    public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.batchDeleteSystemConfig(ids, request);
         return returnStr(objectMap, delete);
@@ -116,11 +120,11 @@ public class SystemConfigController extends BaseController {
 
     @GetMapping(value = "/checkIsNameExist")
     @ApiOperation(value = "检查名称是否存在")
-    public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
-                                   HttpServletRequest request)throws Exception {
+    public String checkIsNameExist(@RequestParam Long id, @RequestParam(value = "name", required = false) String name,
+            HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int exist = systemConfigService.checkIsNameExist(id, name);
-        if(exist > 0) {
+        if (exist > 0) {
             objectMap.put("status", true);
         } else {
             objectMap.put("status", false);
@@ -130,6 +134,7 @@ public class SystemConfigController extends BaseController {
 
     /**
      * 获取当前租户的配置信息
+     * 
      * @param request
      * @return
      */
@@ -137,13 +142,13 @@ public class SystemConfigController extends BaseController {
     @ApiOperation(value = "获取当前租户的配置信息")
     public BaseResponseInfo getCurrentInfo(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
-        try{
+        try {
             List<SystemConfig> list = systemConfigService.getSystemConfig();
             res.code = 200;
-            if(list.size()>0) {
+            if (list.size() > 0) {
                 res.data = list.get(0);
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;
             res.data = "获取数据失败";
@@ -153,6 +158,7 @@ public class SystemConfigController extends BaseController {
 
     /**
      * 获取文件大小限制
+     * 
      * @param request
      * @return
      * @throws Exception
@@ -161,16 +167,16 @@ public class SystemConfigController extends BaseController {
     @ApiOperation(value = "获取文件大小限制")
     public BaseResponseInfo fileSizeLimit(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
-        try{
+        try {
             Long limit = 0L;
-            if(maxFileSize<maxRequestSize) {
+            if (maxFileSize < maxRequestSize) {
                 limit = maxFileSize;
             } else {
                 limit = maxRequestSize;
             }
             res.code = 200;
             res.data = limit;
-        } catch(Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;
             res.data = "获取数据失败";
@@ -180,6 +186,7 @@ public class SystemConfigController extends BaseController {
 
     /**
      * 文件上传统一方法
+     * 
      * @param request
      * @param response
      * @return
@@ -191,18 +198,20 @@ public class SystemConfigController extends BaseController {
         try {
             String savePath = "";
             String bizPath = request.getParameter("biz");
-            if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath)) {
+            if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath) ||
+                    "agency".equals(bizPath) || "agent".equals(bizPath) || "project".equals(bizPath)
+                    || "quote".equals(bizPath)) {
                 MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
                 MultipartFile file = multipartRequest.getFile("file");// 获取上传文件对象
-                if(fileUploadType == 1) {
+                if (fileUploadType == 1) {
                     savePath = systemConfigService.uploadLocal(file, bizPath, request);
-                } else if(fileUploadType == 2) {
+                } else if (fileUploadType == 2) {
                     savePath = systemConfigService.uploadAliOss(file, bizPath, request);
                 }
-                if(StringUtil.isNotEmpty(savePath)){
+                if (StringUtil.isNotEmpty(savePath)) {
                     res.code = 200;
                     res.data = savePath;
-                }else {
+                } else {
                     res.code = 500;
                     res.data = "上传失败！";
                 }
@@ -230,7 +239,7 @@ public class SystemConfigController extends BaseController {
     public void view(HttpServletRequest request, HttpServletResponse response) {
         // ISO-8859-1 ==> UTF-8 进行编码转换
         String imgPath = extractPathFromPattern(request);
-        if(StringUtil.isEmpty(imgPath) || imgPath=="null"){
+        if (StringUtil.isEmpty(imgPath) || imgPath == "null") {
             return;
         }
         // 其余处理略
@@ -242,12 +251,13 @@ public class SystemConfigController extends BaseController {
                 imgPath = imgPath.substring(0, imgPath.length() - 1);
             }
             String fileUrl = "";
-            if(fileUploadType == 1) {
+            if (fileUploadType == 1) {
                 fileUrl = systemConfigService.getFileUrlLocal(imgPath);
                 inputStream = new BufferedInputStream(new FileInputStream(fileUrl));
-            } else if(fileUploadType == 2) {
-                fileUrl = systemConfigService.getFileUrlAliOss(imgPath);
-                URL url = new URL(fileUrl);
+            } else if (fileUploadType == 2) {
+                // Use signed preview URL so the server can fetch objects from private OSS buckets
+                String signed = ossUtils.generatePreviewUrl(imgPath, 60); // 60s
+                URL url = new URL(signed);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5 * 1000);
@@ -287,6 +297,7 @@ public class SystemConfigController extends BaseController {
 
     /**
      * 预览缩略图&下载文件
+     * 
      * @param request
      * @param response
      */
@@ -295,7 +306,7 @@ public class SystemConfigController extends BaseController {
     public void viewMini(HttpServletRequest request, HttpServletResponse response) {
         // ISO-8859-1 ==> UTF-8 进行编码转换
         String imgPath = extractPathFromPattern(request);
-        if(StringUtil.isEmpty(imgPath) || imgPath=="null"){
+        if (StringUtil.isEmpty(imgPath) || imgPath == "null") {
             return;
         }
         InputStream inputStream = null;
@@ -306,12 +317,13 @@ public class SystemConfigController extends BaseController {
                 imgPath = imgPath.substring(0, imgPath.length() - 1);
             }
             String fileUrl = "";
-            if(fileUploadType == 1) {
+            if (fileUploadType == 1) {
                 fileUrl = systemConfigService.getFileUrlLocal(imgPath);
                 inputStream = new BufferedInputStream(new FileInputStream(fileUrl));
-            } else if(fileUploadType == 2) {
-                fileUrl = systemConfigService.getFileUrlAliOss(imgPath);
-                URL url = new URL(fileUrl);
+            } else if (fileUploadType == 2) {
+                // Use signed preview URL to fetch the image from OSS (private buckets supported)
+                String signed = ossUtils.generatePreviewUrl(imgPath, 60);
+                URL url = new URL(signed);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5 * 1000);
@@ -339,12 +351,13 @@ public class SystemConfigController extends BaseController {
 
     /**
      * Excel导出统一接口
+     * 
      * @param response
      */
     @PostMapping(value = "/exportExcelByParam")
     @ApiOperation(value = "生成excel表格")
     public void exportExcelByParam(@RequestBody JSONObject jsonObject,
-                                   HttpServletResponse response) {
+            HttpServletResponse response) {
         try {
             String title = jsonObject.getString("title");
             String head = jsonObject.getString("head");
@@ -357,8 +370,28 @@ public class SystemConfigController extends BaseController {
     }
 
     /**
-     *  把指定URL后的字符串全部截断当成参数
-     *  这么做是为了防止URL中包含中文或者特殊字符（/等）时，匹配不了的问题
+     * Get signed preview URL for OSS object
+     */
+    @GetMapping("/previewUrl")
+    @ApiOperation(value = "Get signed preview URL")
+    public String previewUrl(@RequestParam String objectKey) {
+        return ossUtils.generatePreviewUrl(objectKey, 300); // 5 minutes expiration
+    }
+
+    /**
+     * Get signed download URL for OSS object
+     */
+    @GetMapping("/downloadUrl")
+    @ApiOperation(value = "Get signed download URL")
+    public String downloadUrl(@RequestParam String objectKey,
+            @RequestParam String fileName) throws Exception {
+        return ossUtils.generateDownloadUrl(objectKey, fileName, 60); // 1 minute expiration
+    }
+
+    /**
+     * 把指定URL后的字符串全部截断当成参数
+     * 这么做是为了防止URL中包含中文或者特殊字符（/等）时，匹配不了的问题
+     * 
      * @param request
      * @return
      */

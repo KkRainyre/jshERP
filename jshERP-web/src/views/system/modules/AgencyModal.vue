@@ -171,7 +171,7 @@
 
             <!-- Preview -->
             <div v-if="logoData" class="logo-preview-box">
-              <img :src="logoData" alt="Logo Preview" />
+              <img :src="logoData" alt="Logo Preview" @error="onLogoPreviewError($event)" />
             </div>
           </a-form-item>
         </a-form>
@@ -186,6 +186,7 @@
 
   import pick from 'lodash.pick'
   import { addAgency, editAgency, checkAgency } from '@/api/api'
+  import { getAction } from '@/api/manage'
   import { autoJumpNextInput } from "@/utils/util"
   import { mixinDevice } from '@/utils/mixin'
   import Vue from 'vue'
@@ -209,7 +210,6 @@
   xs: { span: 24 },
   sm: { span: 20 },
 },
-  confirmLoading: false,
   confirmLoading: false,
   tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
   form: this.$form.createForm(this),
@@ -295,6 +295,11 @@
   sameAddress: false
 }
 },
+computed: {
+  uploadAction: function () {
+    return window._CONFIG['domianURL'] + "/systemConfig/upload?biz=agency";
+  }
+},
   methods: {
   add() {
   this.edit({});
@@ -317,12 +322,53 @@
 });
 
   if (record.logo) {
-    if (record.logo) {
-       this.logoData = "/jshERP-boot/systemConfig/static/" + record.logo;
-    } else {
-       this.logoData = null;
-    }
-    this.model.logo = record.logo;
+       // Normalize model.logo to objectKey where possible so we don't store expired signed URLs
+       // If record.logo is an objectKey (no http) -> fetch signed preview
+       if (record.logo.startsWith('http')) {
+           // It might be a signed OSS URL (which can expire). If it belongs to our OSS host, try to extract objectKey
+           this.model.logo = record.logo; // temporarily keep raw value
+           if (record.logo.indexOf('.aliyuncs.com') > -1) {
+               try {
+                   const objectKey = record.logo.replace(/^https?:\/\/[^\/]+\/(.*)$/, '$1');
+                   // Request fresh signed preview and normalize model.logo to objectKey
+                   getAction('/api/oss/urls', { objectKey: objectKey, fileName: '' }).then(res => {
+                       if (res && res.previewUrl) {
+                           this.logoData = res.previewUrl;
+                           this.model.logoUrl = res.previewUrl;
+                           this.model.logo = objectKey; // store objectKey for future operations
+                       } else {
+                           this.logoData = record.logo; // fallback to original
+                       }
+                   }).catch(err => {
+                       console.error('Failed to refresh signed URL for logo', err);
+                       this.logoData = record.logo;
+                   })
+               } catch (e) {
+                   console.error('Error extracting objectKey from url', e);
+                   this.logoData = record.logo;
+               }
+           } else {
+               // Not an OSS signed url; keep using it directly
+               this.logoData = record.logo;
+           }
+       } else {
+          // Assume object key, fetch signed URL from OSS API
+          this.model.logo = record.logo;
+          getAction('/api/oss/urls', { objectKey: record.logo, fileName: '' }).then(res => {
+             if (res && res.previewUrl) {
+                 this.logoData = res.previewUrl;
+                 this.model.logoUrl = res.previewUrl;
+             } else if (res) {
+                 const url = res.previewUrl || res;
+                 if (url) {
+                   this.logoData = url;
+                   this.model.logoUrl = url;
+                 }
+             }
+          }).catch(err => {
+             console.error('Failed to fetch preview URL', err);
+          })
+       }
   } else {
     this.logoData = null;
     this.model.logo = null;
@@ -374,6 +420,46 @@
   this.close();
 },
 
+  onLogoPreviewError(e) {
+    // Called when <img> fails to load. Log failing src and try alternative sources:
+    try {
+      const failingSrc = e && e.target && e.target.src;
+      console.warn('Logo image failed to load:', failingSrc, 'model.logo=', this.model.logo);
+
+      const key = this.model.logo;
+      if (key && !String(key).startsWith('http')) {
+        // Try OSS urls endpoint
+        getAction('/api/oss/urls', { objectKey: key, fileName: '' }).then(res => {
+          if (res && res.previewUrl) {
+            this.logoData = res.previewUrl;
+            this.model.logoUrl = res.previewUrl;
+            console.debug('onLogoPreviewError: got previewUrl from /api/oss/urls', res.previewUrl);
+            return;
+          }
+          // Fallback to proxied route
+          this.logoData = window._CONFIG['domianURL'] + '/systemConfig/static/' + key;
+          this.model.logoUrl = this.logoData;
+          console.debug('onLogoPreviewError: fallback to proxied static route', this.logoData);
+        }).catch(err => {
+          console.error('Fallback: failed to fetch preview URL', err);
+          this.logoData = window._CONFIG['domianURL'] + '/systemConfig/static/' + key;
+          this.model.logoUrl = this.logoData;
+        })
+      } else if (key && String(key).startsWith('http')) {
+        // If model.logo is already full URL and it failed, try server proxy with full path encoded
+        this.logoData = window._CONFIG['domianURL'] + '/systemConfig/static/' + key;
+        this.model.logoUrl = this.logoData;
+        console.debug('onLogoPreviewError: proxied original http url', this.logoData);
+      } else {
+        // Nothing we can do — clear preview
+        this.logoData = null;
+        this.model.logoUrl = null;
+      }
+    } catch (err) {
+      console.error('onLogoPreviewError handler failed', err);
+    }
+  },
+
   validateSupplierName(rule, value, callback) {
   const params = {
   name: value,
@@ -395,14 +481,66 @@
 
   // ------------ LOGO UPLOAD (FINAL) ------------
 
+  // ------------ LOGO UPLOAD (FINAL) ------------
+
   handleLogoChange(info) {
     if (info.file.status === 'done') {
       const res = info.file.response;
+      // Object key is returned directly (plain string) or in res.data if standard response
+      // Based on controller, it returns purely the objectKey string? No, ResponseJsonUtil might wrap it.
+      // Wait, SystemConfigService.uploadAliOss returns a String (objectKey).
+      // The controller wraps it in BaseResponseInfo? 
+      // SystemConfigController.upload returns BaseResponseInfo. res.data = objectKey.
+      
       if (res && res.code === 200) {
-        this.model.logo = res.data; 
+        // Parse the JSON string from res.data
+        let data = res.data;
+        if (typeof data === 'string') {
+           try {
+              data = JSON.parse(data);
+           } catch (e) {
+              // fallback if it's just a string key
+              data = { objectKey: data }; 
+           }
+        }
         
-        this.model.logo = res.data; 
-        this.logoData = "/jshERP-boot/systemConfig/static/" + res.data; 
+        const objectKey = data.objectKey || data; 
+        const signedUrl = data.signedUrl;
+
+        console.debug('handleLogoChange: upload result', { objectKey, signedUrl, raw: data });
+
+        this.model.logo = objectKey;
+        this.model.logoUrl = signedUrl; // Store signed URL in model
+
+        if (signedUrl) {
+           this.logoData = signedUrl;
+           console.debug('handleLogoChange: set logoData to signedUrl', this.logoData);
+        } else {
+           console.debug('handleLogoChange: no signedUrl returned, will fetch via OSS API / proxy fallback');
+           // Fallback if no signedUrl returned (backward compatibility) — use OSS API
+            getAction('/api/oss/urls', { objectKey: objectKey, fileName: '' }).then(res => {
+                 if (res && res.previewUrl) {
+                     this.logoData = res.previewUrl;
+                     this.model.logoUrl = res.previewUrl;
+                 } else if (res) {
+                     const url = res.previewUrl || res;
+                     if (url) {
+                       this.logoData = url;
+                       this.model.logoUrl = url;
+                     }
+                 }
+            }).catch(err => {
+                 console.error('Failed to fetch preview URL', err);
+                 // Final fallback: proxy the OSS object via server static endpoint to avoid CORS or signed URL issues
+                 try {
+                   const proxied = window._CONFIG['domianURL'] + '/systemConfig/static/' + encodeURIComponent(objectKey);
+                   this.logoData = proxied;
+                   this.model.logoUrl = proxied;
+                 } catch (e) {
+                   console.error('Failed to set proxied logo url', e);
+                 }
+            })
+        }
         
         this.$message.success('Logo uploaded successfully');
       } else {

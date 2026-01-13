@@ -133,7 +133,7 @@ export default {
       confirmLoading: false,
       agencyList: [],
       disabledCompany: false,
-      uploadAction: '/jshERP-boot/systemConfig/upload?biz=agent',
+      uploadAction: window._CONFIG['domianURL'] + '/systemConfig/upload?biz=agent',
       tokenHeader: { 'X-Access-Token': Vue.ls.get(ACCESS_TOKEN) },
       model: {} // Added model to store form data including logo path
     };

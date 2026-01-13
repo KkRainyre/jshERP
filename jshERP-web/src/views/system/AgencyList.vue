@@ -109,18 +109,22 @@
             </template>
 
             <!-- Logo render (CSS-only zoom, no JS mousemove bullshit) -->
+            <!-- Logo render -->
             <template slot="logoRender" slot-scope="record">
-              <div v-if="record.logoThumb" class="logo-cell">
+              <!-- Use record.logoUrl (signed URL) if available, otherwise record.logo (if http), otherwise fallback to thumb -->
+              <div v-if="record.logo || record.logoThumb" class="logo-cell">
                 <img
-                  :src="'data:image/jpeg;base64,' + record.logoThumb"
+                  :src="record.logo && record.logo.startsWith('http') ? record.logo : record.logoUrl"
                   class="logo-thumb"
                   loading="lazy"
+                  @error="$event.target.src='data:image/jpeg;base64,' + record.logoThumb"
                 />
 
                 <div class="logo-preview-wrapper">
                   <img
-                    :src="'data:image/jpeg;base64,' + record.logo"
+                    :src="record.logo && record.logo.startsWith('http') ? record.logo : record.logoUrl"
                     class="logo-preview"
+                    @error="$event.target.src='data:image/jpeg;base64,' + record.logoThumb"
                   />
                 </div>
               </div>
@@ -147,7 +151,7 @@
 <script>
 import AgencyModal from './modules/AgencyModal.vue'
 import ImportFileModal from '@comp/tools/ImportFileModal.vue'
-import { postAction, deleteAction } from '@api/manage'
+import { postAction, deleteAction, getAction } from '@api/manage'
 import { JeecgListMixin } from '@/mixins/JeecgListMixin'
 import { filterObj } from '@/utils/util'
 import JDate from '@comp/jeecg/JDate.vue'
@@ -264,6 +268,13 @@ export default {
       return 'id'
     }
   },
+  watch: {
+    dataSource: function (val) {
+      if (val && val.length > 0) {
+        this.resolveLogoUrls();
+      }
+    }
+  },
   methods: {
     /** Reset search */
     searchReset () {
@@ -277,6 +288,46 @@ export default {
       }
       this.loadData(1)
     },
+
+    resolveLogoUrls () {
+      if (!this.dataSource || this.dataSource.length === 0) return
+
+      // Collect object keys on this page that need signed preview URLs (de-duplicated)
+      const keys = Array.from(new Set(
+        this.dataSource
+          .map(item => {
+            if (!item || !item.logo) return null
+            if (!item.logo.startsWith('http')) return item.logo
+            // If it's an OSS signed URL, extract the objectKey portion so we can request a fresh signed URL
+            if (item.logo.indexOf('.aliyuncs.com') > -1) {
+              try {
+                return item.logo.replace(/^https?:\/\/[^\/]+\/(.*)$/, '$1')
+              } catch (e) {
+                return null
+              }
+            }
+            return null
+          })
+          .filter(k => k && k.length > 0 && !this.dataSource.some(it => it.logoUrl && it.logoUrl.includes(k)))
+      ))
+
+      if (keys.length === 0) return
+
+      // Use the OSS API that returns a map of { objectKey: signedUrl }
+      postAction('/api/oss/previewUrls', { objectKeys: keys }).then(map => {
+        if (!map) return
+
+        this.dataSource.forEach(item => {
+          if (item.logo && map[item.logo]) {
+            this.$set(item, 'logoUrl', map[item.logo])
+          }
+        })
+      }).catch(err => {
+        // Log but don't break the UI
+        console.error('Failed to resolve OSS preview URLs', err)
+      })
+    }
+    ,
 
     /** Import */
     handleImportXls () {
@@ -298,6 +349,15 @@ export default {
     },
 
 
+
+    getImgUrl(text) {
+      if (!text) return ''
+      if (text.startsWith('http')) {
+        return text
+      } else {
+        return window._CONFIG['domianURL'] + "/systemConfig/static/" + text
+      }
+    },
 
     /** Navigate to detail page – ONLY pass ID, not huge base64 blob */
     goToAgency (record) {

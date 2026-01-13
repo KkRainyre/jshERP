@@ -1,0 +1,15 @@
+aliyun:
+  oss:
+    endpoint: oss-na-south-1.aliyuncs.com
+    bucket: baganti-crm-files
+    region: na-south-1
+    # Use environment variables or secret store in production
+    accessKeyId: ${ALIYUN_ACCESS_KEY_ID:}
+    accessKeySecret: ${ALIYUN_ACCESS_KEY_SECRET:}
+    publicBaseUrl: https://baganti-crm-files.oss-na-south-1.aliyuncs.com
+
+    sts:
+      endpoint: https://sts.aliyuncs.com
+      roleArn: acs:ram::1234567890123456:role/your-oss-role
+      roleSessionName: baganti-crm
+      durationSeconds: 3600
