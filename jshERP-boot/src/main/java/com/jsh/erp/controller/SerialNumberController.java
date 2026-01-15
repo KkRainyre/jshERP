@@ -7,6 +7,7 @@ import com.jsh.erp.service.DepotHeadService;
 import com.jsh.erp.service.DepotItemService;
 import com.jsh.erp.service.SerialNumberService;
 import com.jsh.erp.utils.BaseResponseInfo;
+import com.jsh.erp.utils.StringUtil;
 import com.jsh.erp.utils.Tools;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,39 +60,67 @@ public class SerialNumberController {
 
     /**
      * 获取序列号商品
-     * @param name
-     * @param depotId
-     * @param barCode
-     * @param currentPage
-     * @param pageSize
+     * @param jsonObject
      * @param request
      * @return
      * @throws Exception
      */
-    @GetMapping(value = "/getEnableSerialNumberList")
+    @PostMapping(value = "/getEnableSerialNumberList")
     @ApiOperation(value = "获取序列号商品")
-    public BaseResponseInfo getEnableSerialNumberList(@RequestParam("name") String name,
-                                                      @RequestParam("depotItemId") Long depotItemId,
-                                                      @RequestParam("depotId") Long depotId,
-                                                      @RequestParam("barCode") String barCode,
-                                                      @RequestParam("page") Integer currentPage,
-                                                      @RequestParam("rows") Integer pageSize,
-                                                      HttpServletRequest request)throws Exception {
+    public BaseResponseInfo getEnableSerialNumberList(@RequestBody JSONObject jsonObject, HttpServletRequest request)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         Map<String, Object> map = new HashMap<>();
         try {
+            String name = jsonObject.getString("name");
+            Long depotItemId = jsonObject.getLong("depotItemId");
+            Long depotId = jsonObject.getLong("depotId");
+            String barCode = jsonObject.getString("barCode");
+            Integer currentPage = jsonObject.getInteger("page");
+            Integer pageSize = jsonObject.getInteger("rows");
             String number = "";
+            String [] nameArray = null;
             if(depotItemId != null) {
                 DepotItem depotItem = depotItemService.getDepotItem(depotItemId);
                 number = depotHeadService.getDepotHead(depotItem.getHeaderId()).getNumber();
             }
-            List<SerialNumberEx> list = serialNumberService.getEnableSerialNumberList(number, name, depotId, barCode, (currentPage-1)*pageSize, pageSize);
+            // 批量查询序列号时，name可能为多个
+            if(StringUtil.isNotEmpty(name)) {
+                name = name.replace("，",",");
+                if(name.contains(",")) {
+                    nameArray = name.split(",");
+                    name = null;
+                }
+            }
+            List<SerialNumberEx> list = serialNumberService.getEnableSerialNumberList(number, name, nameArray, depotId, barCode, (currentPage-1)*pageSize, pageSize);
             for(SerialNumberEx serialNumberEx: list) {
                 serialNumberEx.setCreateTimeStr(Tools.getCenternTime(serialNumberEx.getCreateTime()));
             }
-            Long total = serialNumberService.getEnableSerialNumberCount(number, name, depotId, barCode);
+            Long total = serialNumberService.getEnableSerialNumberCount(number, name, nameArray, depotId, barCode);
+            List<String> missList = new ArrayList<>();
+            if(nameArray!=null && nameArray.length>0) {
+                List<SerialNumberEx> allList = serialNumberService.getEnableSerialNumberList(number, name, nameArray, depotId, barCode, null, null);
+                if(allList.size() < nameArray.length) {
+                    //说明查出的比查询条件里面的序列号少，此时需要寻找出缺少的序列号
+                    for (String item : nameArray) {
+                        boolean isHave = false;
+                        for (SerialNumberEx serialNumberEx : allList) {
+                            if (item.equals(serialNumberEx.getSerialNumber())) {
+                                isHave = true;
+                                break;
+                            }
+                        }
+                        if (!isHave) {
+                            missList.add(item);
+                        }
+                    }
+                }
+            }
             map.put("rows", list);
             map.put("total", total);
+            if(!missList.isEmpty()) {
+                //列出未查询到的序列号
+                map.put("missInfo", String.join(",", missList));
+            }
             res.code = 200;
             res.data = map;
         } catch(Exception e){

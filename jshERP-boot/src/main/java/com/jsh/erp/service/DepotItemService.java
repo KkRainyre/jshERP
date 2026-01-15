@@ -394,6 +394,7 @@ public class DepotItemService {
             checkAssembleWithMaterialType(rowArr, depotHead.getSubType());
             //校验多行明细当中是否存在重复的序列号
             checkSerialNumberRepeat(rowArr);
+            List<DepotItem> depotItemList = new ArrayList<>();
             for (int i = 0; i < rowArr.size(); i++) {
                 DepotItem depotItem = new DepotItem();
                 JSONObject rowObj = JSONObject.parseObject(rowArr.getString(i));
@@ -648,8 +649,15 @@ public class DepotItemService {
                         thisRealNumber = depotItem.getOperNumber()==null?BigDecimal.ZERO:depotItem.getOperNumber();
                     }
                     if(!systemConfigService.getMinusStockFlag() && stock.compareTo(thisRealNumber)<0){
-                        throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_STOCK_NOT_ENOUGH_CODE,
-                                String.format(ExceptionConstants.MATERIAL_STOCK_NOT_ENOUGH_MSG, stockMsg));
+                        //如果开启出入库管理，并且类型等于采购退货、销售，则跳过
+                        if(systemConfigService.getInOutManageFlag() &&
+                                (BusinessConstants.SUB_TYPE_PURCHASE_RETURN.equals(depotHead.getSubType())
+                                        ||BusinessConstants.SUB_TYPE_SALES.equals(depotHead.getSubType()))) {
+                            //跳过
+                        } else {
+                            throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_STOCK_NOT_ENOUGH_CODE,
+                                    String.format(ExceptionConstants.MATERIAL_STOCK_NOT_ENOUGH_MSG, stockMsg));
+                        }
                     }
                     //出库时处理序列号
                     if(!BusinessConstants.SUB_TYPE_TRANSFER.equals(depotHead.getSubType())) {
@@ -670,13 +678,17 @@ public class DepotItemService {
                         }
                     }
                 }
-                this.insertDepotItemWithObj(depotItem);
+                depotItemList.add(depotItem);
+            }
+            //批量写入单据明细数据
+            depotItemMapperEx.batchInsert(depotItemList);
+            for (DepotItem depotItem : depotItemList) {
                 //更新当前库存
                 updateCurrentStock(depotItem);
                 //更新当前成本价
                 updateCurrentUnitPrice(depotItem);
                 //更新商品的价格
-                updateMaterialExtendPrice(materialExtend.getId(), depotHead.getSubType(), depotHead.getBillType(), rowObj);
+                updateMaterialExtendPrice(depotItem.getMaterialExtendId(), depotHead.getSubType(), depotHead.getBillType(), depotItem.getUnitPrice());
             }
             //如果关联单据号非空则更新订单的状态,单据类型：采购入库单、销售出库单、盘点复盘单、其它入库单、其它出库单
             if(BusinessConstants.SUB_TYPE_PURCHASE.equals(depotHead.getSubType())
@@ -908,13 +920,12 @@ public class DepotItemService {
      * 更新商品的价格
      * @param meId
      * @param subType
-     * @param rowObj
+     * @param unitPrice
      */
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void updateMaterialExtendPrice(Long meId, String subType, String billType, JSONObject rowObj) throws Exception {
+    public void updateMaterialExtendPrice(Long meId, String subType, String billType, BigDecimal unitPrice) throws Exception {
         if(systemConfigService.getUpdateUnitPriceFlag()) {
-            if (StringUtil.isExist(rowObj.get("unitPrice"))) {
-                BigDecimal unitPrice = rowObj.getBigDecimal("unitPrice");
+            if (unitPrice!=null) {
                 MaterialExtend materialExtend = new MaterialExtend();
                 materialExtend.setId(meId);
                 if(BusinessConstants.SUB_TYPE_PURCHASE.equals(subType)) {

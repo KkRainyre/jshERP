@@ -17,7 +17,7 @@
             <a-row :gutter="24">
               <a-col :md="12" :sm="24">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="序列号">
-                  <a-input ref="name" placeholder="请输入序列号并回车" v-model="queryParam.name"></a-input>
+                  <a-input ref="name" placeholder="多个序列号用逗号隔开" v-model="queryParam.name"></a-input>
                 </a-form-item>
               </a-col>
               <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
@@ -69,6 +69,7 @@
               <a @click="removeSn(record)">移除</a>
            </span>
         </a-table>
+        <div style="width:200px; float:right; text-align: right; padding: 18px 30px 18px 0">已选中共{{checkDataSource.length}}条</div>
       </a-col>
     </a-row>
   </a-modal>
@@ -196,6 +197,9 @@
                 this.checkSn(obj)
                 this.queryParam.name = ''
               }
+            }
+            if(res.data.missInfo) {
+              this.$message.warning("未查询到的序列号：" + res.data.missInfo)
             }
           }
         }).finally(() => {
@@ -329,6 +333,10 @@
         this.selectionRows = selectionRows;
       },
       onSearch() {
+        if(this.queryParam.name && this.queryParam.name.length>2000) {
+          this.$message.warning('序列号长度不能超出2000个字符！');
+          return
+        }
         this.loadData(1);
       },
       modalFormOk() {
